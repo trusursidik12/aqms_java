@@ -35,8 +35,8 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
+
 import org.hsqldb.jdbc.JDBCDriver;
 
 public class Main {
@@ -93,8 +93,21 @@ public class Main {
 	private LineBorder borderPane = new LineBorder(Color.DARK_GRAY, 1, true);
 	private Timer timer1 = new Timer();
 	
-	public static void main(String[] args) {		
-		
+	
+	protected ResultSet execQuery(String query) {
+		try {
+			Connection con = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/aqms","SA", "");
+			Statement statement = con.createStatement();
+		    ResultSet rs = statement.executeQuery(query);
+		    return rs;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static void main(String[] args) {
+        //System.out.println( "admin".hashCode() );		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -107,7 +120,7 @@ public class Main {
 		});
 	}
 	
-    private void initUI() {
+    private void initChart() {
         XYDataset dataset = createDataset();
         JFreeChart chart = createChart(dataset);
         ChartPanel chartPanel = new ChartPanel(chart);
@@ -183,7 +196,7 @@ public class Main {
 	public Main() {
 		initialize();
 		timer1();
-		initUI();
+		initChart(); 
 	}
 	
 	private void timer1() {
@@ -195,6 +208,17 @@ public class Main {
 				dtf = DateTimeFormatter.ofPattern("dd MMMM yyyy");  
 				now = LocalDateTime.now();  
 				lblDate.setText(dtf.format(now));
+				
+				
+				try {
+					execQuery("INSERT INTO data_log (waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc) VALUES (NOW(),11,12,2.0,2.0,0.007,0.03,0.034,0.23,0.234)");
+					ResultSet rs = execQuery("SELECT * FROM data_log ORDER BY waktu DESC LIMIT 1");
+					rs.next();
+					System.out.println(rs.getString("waktu"));
+					//System.out.println(rs.getRow());
+				} catch (Exception e) { 
+					System.out.println("none");
+				}
 		    }
 		}, 0,1000);
 	}
@@ -322,7 +346,7 @@ public class Main {
 		lblPM10.setForeground(white);
 		lblPM10.setBounds(5,11,50,25);
 		lblPM10val = new JLabel();
-		lblPM10val.setText("15 ug/m3");
+		lblPM10val.setText("11 ug/m3");
 		lblPM10val.setFont(new Font("Arial", Font.BOLD, 28));
 		lblPM10val.setForeground(lime);
 		lblPM10val.setBounds(58,52,150,35);
