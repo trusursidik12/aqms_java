@@ -10,6 +10,7 @@ import java.awt.Toolkit;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Enumeration;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -43,6 +44,10 @@ import com.labjack.LJM;
 import com.labjack.LJMException;
 import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.IntByReference;
+
+import jssc.SerialPortList;
+import jssc.SerialPort; 
+import jssc.SerialPortException;
 
 public class Main {
 	private JFrame frame;
@@ -145,6 +150,21 @@ public class Main {
 		return "0";
 	}
 	
+	protected String readSerial(String Port,int BaudRate) {
+		SerialPort serialPort = new SerialPort(Port);
+	    try {
+	        serialPort.openPort();
+	        serialPort.setParams(BaudRate, 8, 1, 0);
+	        String response = serialPort.readString();
+	        serialPort.closePort();
+	        return response;
+	    }
+	    catch (SerialPortException ex) {
+	        System.out.println(ex);
+	    }
+	    return "";
+	}
+	
 	
 	protected ResultSet execQuery(String query) {
 		try {
@@ -170,6 +190,14 @@ public class Main {
 				}
 			}
 		});
+	}
+	
+	private void initSerial() {
+		execQuery("TRUNCATE TABLE serial_ports");
+		String[] portNames = SerialPortList.getPortNames();
+		for(int i = 0; i < portNames.length; i++){
+			execQuery("INSERT INTO serial_ports (port,description) VALUES ('" + portNames[i] +"','" + portNames[i] + "')");
+		}
 	}
 	
 	private void initParam() {
@@ -284,9 +312,10 @@ public class Main {
 
 	public Main() {
 		initialize();
+		initSerial();
 		initParam();
 		timer1();
-		initChart(); 
+		initChart(); 		
 	}
 	
 	private void timer1() {
@@ -322,6 +351,8 @@ public class Main {
 				lblO3val.setText(txtO3);
 				lblNO2val.setText(txtNO2);
 				lblHCval.setText(txtHC);
+				
+				//System.out.println(readSerial("COM8",9600));
 		    }
 		}, 0,1000);
 	}
