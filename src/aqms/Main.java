@@ -31,7 +31,7 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.time.Day;
+import org.jfree.data.time.*;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
@@ -111,18 +111,23 @@ public class Main {
 	static String gainSO2 = "";
 	static String offsetSO2 = "";
 	static String massSO2 = "";
+	static String txtSO2 = "";
 	static String gainCO = "";
 	static String offsetCO = "";
 	static String massCO = "";
+	static String txtCO = "";
 	static String gainO3 = "";
 	static String offsetO3 = "";
 	static String massO3 = "";
+	static String txtO3 = "";
 	static String gainNO2 = "";
 	static String offsetNO2 = "";
 	static String massNO2 = "";
+	static String txtNO2 = "";
 	static String gainHC = "";
 	static String offsetHC = "";
 	static String massHC = "";
+	static String txtHC = "";
 	
 	protected String readLabjack(String name) {
 		try {
@@ -222,41 +227,35 @@ public class Main {
     private XYDataset createDataset() {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
 
-        TimeSeries series1 = new TimeSeries("Series1");
-        series1.add(new Day(1, 1, 2017), 50);
-        series1.add(new Day(2, 1, 2017), 40);
-        series1.add(new Day(3, 1, 2017), 45);
-        series1.add(new Day(4, 1, 2017), 30);
-        series1.add(new Day(5, 1, 2017), 50);
-        series1.add(new Day(6, 1, 2017), 45);
-        series1.add(new Day(7, 1, 2017), 60);
-        series1.add(new Day(8, 1, 2017), 45);
-        series1.add(new Day(9, 1, 2017), 55);
-        series1.add(new Day(10, 1, 2017), 48);
-        series1.add(new Day(11, 1, 2017), 60);
-        series1.add(new Day(12, 1, 2017), 45);
-        series1.add(new Day(13, 1, 2017), 65);
-        series1.add(new Day(14, 1, 2017), 45);
-        series1.add(new Day(15, 1, 2017), 55);
-        dataset.addSeries(series1);
+        TimeSeries serSO2 = new TimeSeries("SO2");
+        final Minute minute = new Minute();
+        serSO2.add(new Second(1, minute), 0.72);
+        serSO2.add(new Second(3, minute), 0.789);
+        serSO2.add(new Second(5, minute), 0.79);
+        serSO2.add(new Second(7, minute), 0.4);
+        serSO2.add(new Second(9, minute), 0.59);
+        serSO2.add(new Second(11, minute), 0.289);
+        serSO2.add(new Second(13, minute), 0.389);
+        serSO2.add(new Second(15, minute), 0.89);
+        dataset.addSeries(serSO2);
 
-        TimeSeries series2 = new TimeSeries("Series2");
-        series2.add(new Day(1, 1, 2017), 40);
-        series2.add(new Day(2, 1, 2017), 35);
-        series2.add(new Day(3, 1, 2017), 26);
-        series2.add(new Day(4, 1, 2017), 45);
-        series2.add(new Day(5, 1, 2017), 40);
-        series2.add(new Day(6, 1, 2017), 35);
-        series2.add(new Day(7, 1, 2017), 45);
-        series2.add(new Day(8, 1, 2017), 48);
-        series2.add(new Day(9, 1, 2017), 31);
-        series2.add(new Day(10, 1, 2017), 32);
-        series2.add(new Day(11, 1, 2017), 21);
-        series2.add(new Day(12, 1, 2017), 35);
-        series2.add(new Day(13, 1, 2017), 10);
-        series2.add(new Day(14, 1, 2017), 25);
-        series2.add(new Day(15, 1, 2017), 15);
-        dataset.addSeries(series2);
+//        TimeSeries series2 = new TimeSeries("Series2");
+//        series2.add(new Day(1, 1, 2017), 40);
+//        series2.add(new Day(2, 1, 2017), 35);
+//        series2.add(new Day(3, 1, 2017), 26);
+//        series2.add(new Day(4, 1, 2017), 45);
+//        series2.add(new Day(5, 1, 2017), 40);
+//        series2.add(new Day(6, 1, 2017), 35);
+//        series2.add(new Day(7, 1, 2017), 45);
+//        series2.add(new Day(8, 1, 2017), 48);
+//        series2.add(new Day(9, 1, 2017), 31);
+//        series2.add(new Day(10, 1, 2017), 32);
+//        series2.add(new Day(11, 1, 2017), 21);
+//        series2.add(new Day(12, 1, 2017), 35);
+//        series2.add(new Day(13, 1, 2017), 10);
+//        series2.add(new Day(14, 1, 2017), 25);
+//        series2.add(new Day(15, 1, 2017), 15);
+//        dataset.addSeries(series2);
         
 
         return dataset;
@@ -312,11 +311,17 @@ public class Main {
 				resultNO2 = expNO2.with("AIN3",ain3).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainNO2).and("offset",offsetNO2).eval();
 				resultHC = expHC.with("AIN4",ain4).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainHC).and("offset",offsetHC).eval();
 				
-				lblSO2val.setText(new DecimalFormat("#.###").format(resultSO2));
-				lblCOval.setText(resultCO.toString());
-				lblO3val.setText(resultO3.toString());
-				lblNO2val.setText(resultNO2.toString());
-				lblHCval.setText(resultHC.toString());
+				if(resultSO2.doubleValue() < 0) txtSO2 = "0"; else txtSO2 = new DecimalFormat("#.###").format(resultSO2);
+				if(resultCO.doubleValue() < 0) txtCO = "0"; else txtCO = new DecimalFormat("#.###").format(resultCO);
+				if(resultO3.doubleValue() < 0) txtO3 = "0"; else txtO3 = new DecimalFormat("#.###").format(resultO3);
+				if(resultNO2.doubleValue() < 0) txtNO2 = "0"; else txtNO2 = new DecimalFormat("#.###").format(resultNO2);
+				if(resultHC.doubleValue() < 0) txtHC = "0"; else txtHC = new DecimalFormat("#.###").format(resultHC);
+				
+				lblSO2val.setText(txtSO2);
+				lblCOval.setText(txtCO);
+				lblO3val.setText(txtO3);
+				lblNO2val.setText(txtNO2);
+				lblHCval.setText(txtHC);
 		    }
 		}, 0,1000);
 	}
