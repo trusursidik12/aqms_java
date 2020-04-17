@@ -10,5 +10,7 @@
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/jfreechart-1.0.19/jfreechart-1.0.19/lib/jfreechart-1.0.19.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Documents/TRUSUR/HSQLDB/lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Documents/TRUSUR/HSQLDB/lib/sqltool.jar"/>
+	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/Java_LJM_2017_12_04/Java_LJM_2017_12_04/jar/jna.jar"/>
+	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/Java_LJM_2017_12_04/Java_LJM_2017_12_04/jar/ljm.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

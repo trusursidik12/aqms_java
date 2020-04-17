@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Timer;
@@ -34,10 +35,14 @@ import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
-
 import java.sql.*;
+import java.text.DecimalFormat;
 
 import org.hsqldb.jdbc.JDBCDriver;
+import com.labjack.LJM;
+import com.labjack.LJMException;
+import com.sun.jna.ptr.DoubleByReference;
+import com.sun.jna.ptr.IntByReference;
 
 public class Main {
 	private JFrame frame;
@@ -93,6 +98,48 @@ public class Main {
 	private LineBorder borderPane = new LineBorder(Color.DARK_GRAY, 1, true);
 	private Timer timer1 = new Timer();
 	
+	static BigDecimal resultSO2 = null;
+	static BigDecimal resultCO = null;
+	static BigDecimal resultO3 = null;
+	static BigDecimal resultNO2 = null;
+	static BigDecimal resultHC = null;
+	static Expression expSO2 = null;
+	static Expression expCO = null;
+	static Expression expO3 = null;
+	static Expression expNO2 = null;
+	static Expression expHC = null;
+	static String gainSO2 = "";
+	static String offsetSO2 = "";
+	static String massSO2 = "";
+	static String gainCO = "";
+	static String offsetCO = "";
+	static String massCO = "";
+	static String gainO3 = "";
+	static String offsetO3 = "";
+	static String massO3 = "";
+	static String gainNO2 = "";
+	static String offsetNO2 = "";
+	static String massNO2 = "";
+	static String gainHC = "";
+	static String offsetHC = "";
+	static String massHC = "";
+	
+	protected String readLabjack(String name) {
+		try {
+            IntByReference handleRef = new IntByReference(0);
+            int handle = 0;
+            LJM.openS("ANY", "ANY", "ANY", handleRef);
+            handle = handleRef.getValue();
+            DoubleByReference valueRef = new DoubleByReference(0);
+            LJM.eReadName(handle, name, valueRef);
+            return new DecimalFormat("#.######").format( valueRef.getValue() );
+        }
+        catch (LJMException le) {
+            le.printStackTrace();
+        }
+		return "0";
+	}
+	
 	
 	protected ResultSet execQuery(String query) {
 		try {
@@ -118,6 +165,49 @@ public class Main {
 				}
 			}
 		});
+	}
+	
+	private void initParam() {
+		ResultSet rs = null;
+		try {
+			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'so2'");
+			rs.next();
+			expSO2 = new Expression(rs.getString("formula"));
+			gainSO2 = rs.getString("gain");
+			offsetSO2 = rs.getString("offset");
+			massSO2 = rs.getString("molecular_mass");
+			
+			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'co'");
+			rs.next();
+			expCO = new Expression(rs.getString("formula"));
+			gainCO = rs.getString("gain");
+			offsetCO = rs.getString("offset");
+			massCO = rs.getString("molecular_mass");
+			
+			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'o3'");
+			rs.next();
+			expO3 = new Expression(rs.getString("formula"));
+			gainO3 = rs.getString("gain");
+			offsetO3 = rs.getString("offset");
+			massO3 = rs.getString("molecular_mass");
+			
+			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'no2'");
+			rs.next();
+			expNO2 = new Expression(rs.getString("formula"));
+			gainNO2 = rs.getString("gain");
+			offsetNO2 = rs.getString("offset");
+			massNO2 = rs.getString("molecular_mass");
+			
+			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'hc'");
+			rs.next();
+			expHC = new Expression(rs.getString("formula"));
+			gainHC = rs.getString("gain");
+			offsetHC = rs.getString("offset");
+			massHC = rs.getString("molecular_mass");
+			
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		
 	}
 	
     private void initChart() {
@@ -195,6 +285,7 @@ public class Main {
 
 	public Main() {
 		initialize();
+		initParam();
 		timer1();
 		initChart(); 
 	}
@@ -209,16 +300,23 @@ public class Main {
 				now = LocalDateTime.now();  
 				lblDate.setText(dtf.format(now));
 				
+				String ain0 = readLabjack("AIN0");
+				String ain1 = readLabjack("AIN1");
+				String ain2 = readLabjack("AIN2");
+				String ain3 = readLabjack("AIN3");
+				String ain4 = readLabjack("AIN4");
 				
-				try {
-					execQuery("INSERT INTO data_log (waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc) VALUES (NOW(),11,12,2.0,2.0,0.007,0.03,0.034,0.23,0.234)");
-					ResultSet rs = execQuery("SELECT * FROM data_log ORDER BY waktu DESC LIMIT 1");
-					rs.next();
-					System.out.println(rs.getString("waktu"));
-					//System.out.println(rs.getRow());
-				} catch (Exception e) { 
-					System.out.println("none");
-				}
+				resultSO2 = expSO2.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainSO2).and("offset",offsetSO2).eval();
+				resultCO = expCO.with("AIN1",ain1).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainCO).and("offset",offsetCO).eval();
+				resultO3 = expO3.with("AIN2",ain2).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainO3).and("offset",offsetO3).eval();
+				resultNO2 = expNO2.with("AIN3",ain3).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainNO2).and("offset",offsetNO2).eval();
+				resultHC = expHC.with("AIN4",ain4).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainHC).and("offset",offsetHC).eval();
+				
+				lblSO2val.setText(new DecimalFormat("#.###").format(resultSO2));
+				lblCOval.setText(resultCO.toString());
+				lblO3val.setText(resultO3.toString());
+				lblNO2val.setText(resultNO2.toString());
+				lblHCval.setText(resultHC.toString());
 		    }
 		}, 0,1000);
 	}
@@ -409,7 +507,7 @@ public class Main {
 		lblSO2val.setText("0.017");
 		lblSO2val.setFont(new Font("Arial", Font.BOLD, 24));
 		lblSO2val.setForeground(lime);
-		lblSO2val.setBounds(87,35,150,35);
+		lblSO2val.setBounds(67,35,150,35);
 		lblSO2sat = new JLabel();
 		lblSO2sat.setText("(ppm)");
 		lblSO2sat.setFont(new Font("Arial", Font.BOLD, 14));
@@ -439,7 +537,7 @@ public class Main {
 		lblCOval.setText("0.017");
 		lblCOval.setFont(new Font("Arial", Font.BOLD, 24));
 		lblCOval.setForeground(lime);
-		lblCOval.setBounds(87,35,150,35);
+		lblCOval.setBounds(67,35,150,35);
 		lblCOsat = new JLabel();
 		lblCOsat.setText("(ppm)");
 		lblCOsat.setFont(new Font("Arial", Font.BOLD, 14));
@@ -469,7 +567,7 @@ public class Main {
 		lblO3val.setText("0.017");
 		lblO3val.setFont(new Font("Arial", Font.BOLD, 24));
 		lblO3val.setForeground(lime);
-		lblO3val.setBounds(87,35,150,35);
+		lblO3val.setBounds(67,35,150,35);
 		lblO3sat = new JLabel();
 		lblO3sat.setText("(ppm)");
 		lblO3sat.setFont(new Font("Arial", Font.BOLD, 14));
@@ -499,7 +597,7 @@ public class Main {
 		lblNO2val.setText("0.017");
 		lblNO2val.setFont(new Font("Arial", Font.BOLD, 24));
 		lblNO2val.setForeground(lime);
-		lblNO2val.setBounds(87,35,150,35);
+		lblNO2val.setBounds(67,35,150,35);
 		lblNO2sat = new JLabel();
 		lblNO2sat.setText("(ppm)");
 		lblNO2sat.setFont(new Font("Arial", Font.BOLD, 14));
@@ -529,7 +627,7 @@ public class Main {
 		lblHCval.setText("0.017");
 		lblHCval.setFont(new Font("Arial", Font.BOLD, 24));
 		lblHCval.setForeground(lime);
-		lblHCval.setBounds(87,35,150,35);
+		lblHCval.setBounds(67,35,150,35);
 		lblHCsat = new JLabel();
 		lblHCsat.setText("(ppm)");
 		lblHCsat.setFont(new Font("Arial", Font.BOLD, 14));
