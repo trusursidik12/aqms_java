@@ -20,7 +20,8 @@ public class ExpressionSettings {
      */
     private int powerOperatorPrecedence;
 
-    private ExpressionSettings() {
+    @SuppressWarnings("unused")
+	private ExpressionSettings() {
         // hide default constructor
     }
 

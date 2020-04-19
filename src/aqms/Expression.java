@@ -1580,7 +1580,8 @@ public class Expression {
      * @param operator The operator to add.
      * @return The previous operator with that name, or <code>null</code> if there was none.
      */
-    public <OPERATOR extends LazyOperator> OPERATOR addOperator(OPERATOR operator) {
+    @SuppressWarnings("unchecked")
+	public <OPERATOR extends LazyOperator> OPERATOR addOperator(OPERATOR operator) {
         String key = operator.getOper();
         if (operator instanceof AbstractUnaryOperator) {
             key += "u";
