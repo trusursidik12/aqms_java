@@ -17,13 +17,17 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
@@ -224,7 +228,7 @@ public class Main {
 	    return "";
 	}
 	
-	protected ResultSet execQuery(String query) {
+	static ResultSet execQuery(String query) {
 		try {
 			Connection con = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/aqms","SA", "");
 			Statement statement = con.createStatement();
@@ -293,7 +297,6 @@ public class Main {
 		} catch (Exception e) {}
 		return null;
 	}
-	
 	
 	public static void main(String[] args) {
         //System.out.println( "admin".hashCode() );		
@@ -506,6 +509,34 @@ public class Main {
         chart.setTitle(new TextTitle("",new Font("Serif", java.awt.Font.BOLD, 18)));
         return chart;
     }
+	
+	private void popupLogin() {
+		JTextField username = new JTextField(20);
+		JTextField password = new JPasswordField(20);
+
+		JPanel myPanel = new JPanel();
+		myPanel.add(new JLabel("Username :"));
+		myPanel.add(username);
+		myPanel.add(Box.createHorizontalStrut(15));
+		myPanel.add(new JLabel("Password :"));
+		myPanel.add(password);
+
+		int result = JOptionPane.showConfirmDialog(null, myPanel, "Login", JOptionPane.OK_CANCEL_OPTION);
+		if (result == JOptionPane.OK_OPTION) {
+			ResultSet users = execQuery("SELECT password FROM users WHERE username = '" + username.getText() + "'");
+			try {
+				if(users.next()) {
+					if(Integer.parseInt(users.getString("password")) == password.getText().hashCode()) {
+						new Configuration();
+					} else {
+						JOptionPane.showMessageDialog(null, "Username atau password salah");
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Username atau password salah");
+				}
+			} catch (Exception e) { JOptionPane.showMessageDialog(null, "Ada kesalahan, silakan hubungi technical support!"); }
+		}
+	}
 
 	public Main() {
 		initialize();
@@ -769,6 +800,11 @@ public class Main {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
 		btnKonfigurasi = new JButton("Konfigurasi");
+		btnKonfigurasi.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				popupLogin();
+			}
+		});
 		btnKonfigurasi.setMargin( new Insets(1,1,1,1));  
 		btnKonfigurasi.setFocusPainted(false);
 		btnKonfigurasi.setFont(btnFont);
