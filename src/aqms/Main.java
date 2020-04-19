@@ -299,7 +299,6 @@ public class Main {
 	}
 	
 	public static void main(String[] args) {
-        //System.out.println( "admin".hashCode() );		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -449,6 +448,7 @@ public class Main {
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setBackground(Color.white);
         chartPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 1));
+        chartPane.removeAll();
         chartPane.add(chartPanel);
     }
 
@@ -506,7 +506,7 @@ public class Main {
 
 	
 	private JFreeChart createChart(XYDataset dataset) {
-		JFreeChart chart = ChartFactory.createTimeSeriesChart("","Time","Value",dataset);
+		JFreeChart chart = ChartFactory.createTimeSeriesChart("","Time","ug/m3",dataset);
         XYPlot plot = chart.getXYPlot();
 
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
@@ -575,7 +575,7 @@ public class Main {
 				if(intervalCheckInternet > 30) intervalCheckInternet = 0;
 				if(intervalCheckInternet == 0) checkInternet();
 				intervalCheckInternet++;
-				initChart();
+				
 		    	try {
 					String ain0 = readLabjack("AIN0");
 					String ain1 = readLabjack("AIN1");
@@ -712,11 +712,9 @@ public class Main {
 						avgNO2 = totNO2 / numrow;
 						avgHC = totHC / numrow;
 						
-						System.out.println("UPDATE data_log SET is_avg='1',avg_at=NOW() WHERE id BETWEEN '" + idStartDataLogRange + "' AND '" + idEndDataLogRange + "'");
 						execQuery("UPDATE data_log SET is_avg='1',avg_at=NOW() WHERE id BETWEEN '" + idStartDataLogRange + "' AND '" + idEndDataLogRange + "'");
 						idStartDataLogRange = "-1";
 						idEndDataLogRange = "-1";
-						System.out.println("INSERT INTO data (id_stasiun,waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_sent,is_sent2) VALUES ('" + id_stasiun + "',NOW(),'" + Math.round(avgPM10) + "','" + Math.round(avgPM25) + "','" + Math.round(avgPM10flow) + "','" + Math.round(avgPM25flow) + "','" + Math.round(avgSO2) + "','" + Math.round(avgCO) + "','" + Math.round(avgO3) + "','" + Math.round(avgNO2) + "','" + Math.round(avgHC) + "','0','0')");
 						execQuery("INSERT INTO data (id_stasiun,waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_sent,is_sent2) VALUES ('" + id_stasiun + "',NOW(),'" + Math.round(avgPM10) + "','" + Math.round(avgPM25) + "','" + Math.round(avgPM10flow) + "','" + Math.round(avgPM25flow) + "','" + Math.round(avgSO2) + "','" + Math.round(avgCO) + "','" + Math.round(avgO3) + "','" + Math.round(avgNO2) + "','" + Math.round(avgHC) + "','0','0')");
 					}
 				} catch (Exception e) {}
@@ -741,6 +739,7 @@ public class Main {
 					}
 				} catch (Exception e) { }
 				
+				initChart();
 				
 		    }
 		}, 0,1000);
