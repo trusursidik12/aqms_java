@@ -455,37 +455,52 @@ public class Main {
     private XYDataset createDataset() {
         TimeSeriesCollection dataset = new TimeSeriesCollection();
 
-        TimeSeries serSO2 = new TimeSeries("SO2");
-        final Minute minute = new Minute();
-        serSO2.add(new Second(1, minute), 0.72);
-        serSO2.add(new Second(3, minute), 0.789);
-        serSO2.add(new Second(5, minute), 0.79);
-        serSO2.add(new Second(7, minute), 0.4);
-        serSO2.add(new Second(9, minute), 0.59);
-        serSO2.add(new Second(11, minute), 0.289);
-        serSO2.add(new Second(13, minute), 0.389);
-        serSO2.add(new Second(15, minute), 0.89);
-        dataset.addSeries(serSO2);
-
-//        TimeSeries series2 = new TimeSeries("Series2");
-//        series2.add(new Day(1, 1, 2017), 40);
-//        series2.add(new Day(2, 1, 2017), 35);
-//        series2.add(new Day(3, 1, 2017), 26);
-//        series2.add(new Day(4, 1, 2017), 45);
-//        series2.add(new Day(5, 1, 2017), 40);
-//        series2.add(new Day(6, 1, 2017), 35);
-//        series2.add(new Day(7, 1, 2017), 45);
-//        series2.add(new Day(8, 1, 2017), 48);
-//        series2.add(new Day(9, 1, 2017), 31);
-//        series2.add(new Day(10, 1, 2017), 32);
-//        series2.add(new Day(11, 1, 2017), 21);
-//        series2.add(new Day(12, 1, 2017), 35);
-//        series2.add(new Day(13, 1, 2017), 10);
-//        series2.add(new Day(14, 1, 2017), 25);
-//        series2.add(new Day(15, 1, 2017), 15);
-//        dataset.addSeries(series2);
+        Hour hour;
+        Minute mnt;
+        Second sec;
+        int h,i,s;
+        String waktu;
+        Double logSO2,logCO,logO3,logNO2,logHC;
         
-
+        TimeSeries serSO2 = new TimeSeries("SO2");
+        TimeSeries serCO = new TimeSeries("CO");
+        TimeSeries serO3 = new TimeSeries("O3");
+        TimeSeries serNO2 = new TimeSeries("NO2");
+        TimeSeries serHC = new TimeSeries("HC");
+        
+        ResultSet datalog = execQuery("SELECT * FROM data_log ORDER BY waktu DESC LIMIT 20");
+        try {
+        	while(datalog.next()) {
+        		waktu = datalog.getString("waktu");
+        		logSO2 = datalog.getDouble("so2");
+        		logCO = datalog.getDouble("co");
+        		//logO3 = datalog.getDouble("o3");
+        		logNO2 = datalog.getDouble("no2");
+        		logHC = datalog.getDouble("hc");
+        		
+        		h = Integer.parseInt(waktu.substring(11,13));
+        		i = Integer.parseInt(waktu.substring(14,16));
+        		s = Integer.parseInt(waktu.substring(17,19));
+        		
+        		hour = new Hour(h,new Day());
+        		mnt = new Minute(i,hour);
+        		sec = new Second(s, mnt);
+        		
+        		serSO2.add(sec, logSO2);
+        		serCO.add(sec, logCO);
+        		//serO3.add(sec, logO3);
+        		serNO2.add(sec, logNO2);
+        		serHC.add(sec, logHC);
+        		
+        	}
+        } catch (Exception e) {}
+        
+        dataset.addSeries(serSO2);
+        dataset.addSeries(serCO);
+        //dataset.addSeries(serO3);
+        dataset.addSeries(serNO2);
+        dataset.addSeries(serHC);
+        
         return dataset;
       }
 
@@ -560,7 +575,7 @@ public class Main {
 				if(intervalCheckInternet > 30) intervalCheckInternet = 0;
 				if(intervalCheckInternet == 0) checkInternet();
 				intervalCheckInternet++;
-				
+				initChart();
 		    	try {
 					String ain0 = readLabjack("AIN0");
 					String ain1 = readLabjack("AIN1");
