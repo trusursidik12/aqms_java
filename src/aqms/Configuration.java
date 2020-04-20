@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -146,6 +147,7 @@ public class Configuration {
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudKontroler.getText() + "' WHERE data='controller_baud'");
 				Main.execQuery("UPDATE configurations SET content='" + txtIntervalPompa.getText() + "' WHERE data='pump_interval'");
 				Main.execQuery("UPDATE configurations SET content='" + txtKontrolerPompa.getText() + "' WHERE data='pump_control'");
+				JOptionPane.showMessageDialog(null, "Data tersimpan");
 			}
 		});
 		txtDeviceId.setBounds(205, 5, 200, 20);
