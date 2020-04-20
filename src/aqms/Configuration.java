@@ -158,11 +158,11 @@ public class Configuration {
 		txtLongitude.setBounds(205, 180, 200, 20);
 		txtIntervalPompa.setBounds(205, 205, 200, 20);
 		txtKontrolerPompa.setBounds(205, 230, 200, 20);
-		txtPortPM10.setBounds(520, 5, 60, 20);
-		txtBaudPM10.setBounds(520, 30, 60, 20);
-		txtPortPM25.setBounds(520, 55, 60, 20);
-		txtBaudPM25.setBounds(520, 80, 60, 20);
-		btnSimpan.setBounds(450, 105, 160, 50);
+		txtPortPM10.setBounds(520, 5, 100, 20);
+		txtBaudPM10.setBounds(520, 30, 100, 20);
+		txtPortPM25.setBounds(520, 55, 100, 20);
+		txtBaudPM25.setBounds(520, 80, 100, 20);
+		btnSimpan.setBounds(450, 105, 170, 50);
 		
 		contentPane.add(lblDeviceId);
 		contentPane.add(lblStasiunId);

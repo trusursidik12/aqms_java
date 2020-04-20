@@ -61,7 +61,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.awt.event.ActionEvent;
 
-//@SuppressWarnings("unused")
+@SuppressWarnings("unused")
 public class Main {
 	private JFrame frame;
 	private JPanel contentPane;
@@ -460,11 +460,15 @@ public class Main {
         Second sec;
         int h,i,s;
         String waktu;
-        Double logSO2,logCO,logO3,logNO2,logHC;
+        Double logSO2;
+        Double logCO;
+        //Double logO3;
+        Double logNO2;
+        Double logHC;
         
         TimeSeries serSO2 = new TimeSeries("SO2");
         TimeSeries serCO = new TimeSeries("CO");
-        TimeSeries serO3 = new TimeSeries("O3");
+        //TimeSeries serO3 = new TimeSeries("O3");
         TimeSeries serNO2 = new TimeSeries("NO2");
         TimeSeries serHC = new TimeSeries("HC");
         
@@ -525,7 +529,7 @@ public class Main {
         return chart;
     }
 	
-	private void popupLogin() {
+	private void popupLogin(String mode) {
 		JTextField username = new JTextField(20);
 		JTextField password = new JPasswordField(20);
 
@@ -542,7 +546,8 @@ public class Main {
 			try {
 				if(users.next()) {
 					if(Integer.parseInt(users.getString("password")) == password.getText().hashCode()) {
-						new Configuration();
+						if (mode == "Konfigurasi") new Configuration();
+						if (mode == "Data") new Data();
 					} else {
 						JOptionPane.showMessageDialog(null, "Username atau password salah");
 					}
@@ -816,7 +821,7 @@ public class Main {
 		btnKonfigurasi = new JButton("Konfigurasi");
 		btnKonfigurasi.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				popupLogin();
+				popupLogin("Konfigurasi");
 			}
 		});
 		btnKonfigurasi.setMargin( new Insets(1,1,1,1));  
@@ -827,6 +832,11 @@ public class Main {
 		btnKonfigurasi.setBounds(77,15,115,35);
 		
 		btnData = new JButton("Data");
+		btnData.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				popupLogin("Data");
+			}
+		});
 		btnData.setMargin(new Insets(1,1,1,1));  
 		btnData.setFocusPainted(false);
 		btnData.setFont(btnFont);

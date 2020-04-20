@@ -14,5 +14,6 @@
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/Java_LJM_2017_12_04/Java_LJM_2017_12_04/jar/ljm.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/jssc-2.8.0.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/DateTimePicker/libs/JPlanner.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
