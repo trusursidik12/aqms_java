@@ -102,6 +102,7 @@ public class Main {
 	private JLabel lblNO2val;
 	private JLabel lblHCval;
 	private JButton btnKonfigurasi;
+	private JButton btnParameter;
 	private JButton btnData;
 	private JButton btnPompa;
 	private JButton btnSatuan;
@@ -547,6 +548,7 @@ public class Main {
 				if(users.next()) {
 					if(Integer.parseInt(users.getString("password")) == password.getText().hashCode()) {
 						if (mode == "Konfigurasi") new Configuration();
+						if (mode == "Parameter") new Parameter();
 						if (mode == "Data") new Data();
 					} else {
 						JOptionPane.showMessageDialog(null, "Username atau password salah");
@@ -831,6 +833,19 @@ public class Main {
 		btnKonfigurasi.setBackground(btnBgColor);
 		btnKonfigurasi.setBounds(77,15,115,35);
 		
+		btnParameter = new JButton("Parameter");
+		btnParameter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				popupLogin("Parameter");
+			}
+		});
+		btnParameter.setMargin( new Insets(1,1,1,1));  
+		btnParameter.setFocusPainted(false);
+		btnParameter.setFont(btnFont);
+		btnParameter.setForeground(btnColor);
+		btnParameter.setBackground(btnBgColor);
+		btnParameter.setBounds(214,15,115,35);
+		
 		btnData = new JButton("Data");
 		btnData.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -842,7 +857,7 @@ public class Main {
 		btnData.setFont(btnFont);
 		btnData.setForeground(btnColor);
 		btnData.setBackground(btnBgColor);
-		btnData.setBounds(214,15,115,35);
+		btnData.setBounds(351,15,115,35);
 		
 		btnPompa = new JButton("Pompa 1");
 		btnPompa.setMargin(new Insets(1,1,1,1));  
@@ -900,6 +915,7 @@ public class Main {
 		};
 		headerPane.setBounds(0,0,headerPane.getWidth(), 65);
 		headerPane.add(btnKonfigurasi);
+		headerPane.add(btnParameter);
 		headerPane.add(btnData);
 		headerPane.add(btnPompa);
 		headerPane.add(btnSatuan);
