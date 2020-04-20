@@ -11,17 +11,22 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileWriter;
 import java.sql.ResultSet;
 
 public class Data implements PropertyChangeListener {
@@ -31,6 +36,7 @@ public class Data implements PropertyChangeListener {
 	private JFormattedTextField txtEndDate = new JFormattedTextField(DateFormat.getDateInstance(DateFormat.LONG));
 	private String modeBtnCal,valStartDate,valEndDate;
 	private CalendarWindow calendarWindow;
+	private DefaultTableModel model = new DefaultTableModel();
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -65,6 +71,32 @@ public class Data implements PropertyChangeListener {
 	public Data() {
 		initialize();
 	}
+	
+	private void export(){
+        FileWriter fileWriter;
+        JFileChooser chooser = new JFileChooser();
+        chooser.setCurrentDirectory(new File("export_output/excel"));
+        int retrival = chooser.showSaveDialog(null);
+        if (retrival == JFileChooser.APPROVE_OPTION) {
+            try{
+                TableModel tModel = model;
+                fileWriter = new FileWriter(new File(chooser.getSelectedFile() + ".xls"));
+                for(int i = 0; i < tModel.getColumnCount(); i++){
+	                fileWriter.write(tModel.getColumnName(i).toUpperCase() + "\t");
+	            }
+                fileWriter.write("\n");
+                for(int i=0; i < tModel.getRowCount(); i++) {
+                for(int j=0; j < tModel.getColumnCount(); j++) {
+	                fileWriter.write(tModel.getValueAt(i,j).toString() + "\t");
+	            }
+                fileWriter.write("\n");
+            }
+                fileWriter.close();
+            }catch(Exception e){
+                JOptionPane.showMessageDialog(null, e);
+            }
+        }
+   }
 
 	private void initialize() {
 		frame = new JFrame("DATA");
@@ -79,12 +111,12 @@ public class Data implements PropertyChangeListener {
 		JButton btnCalStart = new JButton("...");
 		JButton btnCalEnd = new JButton("...");
 		JButton btnFilter = new JButton("Filter");
+		JButton btnExport = new JButton("Export");
 		JScrollPane tableScrollPane;
 		JTable table = new JTable(); 
 
 		Object[] columnNames = { "Waktu", "PM10", "PM25", "SO2", "CO", "O3", "NO2", "HC" }; 
 		Object[] data = new Object[8];
-		DefaultTableModel model = new DefaultTableModel();
         model.setColumnIdentifiers(columnNames);
         table.setModel(model);
 		
@@ -103,6 +135,7 @@ public class Data implements PropertyChangeListener {
 		txtEndDate.setBounds(240,5,100,25);
 		btnCalEnd.setBounds(340,5,20,25);
 		btnFilter.setBounds(380,5,100,25);
+		btnExport.setBounds(490,5,100,25);
 		
 		btnCalStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -147,6 +180,12 @@ public class Data implements PropertyChangeListener {
 			}
 		});
 		
+		btnExport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				export();
+			}
+		});
+		
 		ResultSet aqm_data = Main.execQuery("SELECT * FROM data ORDER BY waktu DESC LIMIT 100");
 		try {
 			while(aqm_data.next()) {
@@ -176,6 +215,7 @@ public class Data implements PropertyChangeListener {
 		contentPane.add(txtEndDate);
 		contentPane.add(btnCalEnd);
 		contentPane.add(btnFilter);
+		contentPane.add(btnExport);
 		contentPane.add(tableScrollPane);
 		
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));
