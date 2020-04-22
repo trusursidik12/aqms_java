@@ -10,6 +10,7 @@ import java.awt.Toolkit;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -47,10 +48,12 @@ import org.jfree.data.xy.XYDataset;
 import org.json.simple.JSONObject;
 import java.sql.*;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 
 import org.hsqldb.jdbc.JDBCDriver;
 import com.labjack.LJM;
 import com.labjack.LJMException;
+import com.mindfusion.common.DateTime;
 import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.IntByReference;
 
@@ -118,20 +121,27 @@ public class Main {
 	private Color btnBgColor = Color.decode("#0078D7");
 	private Color btnColor = Color.YELLOW;
 	private Color lime = Color.decode("#00FF00");
+	private Color blue = Color.decode("#0000FF");
 	private LineBorder borderPane = new LineBorder(Color.DARK_GRAY, 1, true);
 	private Timer timer1 = new Timer();
+	private Timer timerClearLog = new Timer();
+	private Timer timerPump = new Timer();
 	
 	static String id_stasiun = "";
 	static String nama_stasiun = "";
 	static String satuan = "ppm";
 	static SerialPort serialPM10;
 	static SerialPort serialPM25;
+	static SerialPort serialPump;
 	static String portPM10;
 	static String portPM25;
+	static String portPump;
 	static int baudPM10;
 	static int baudPM25;
+	static int baudPump;
 	static Boolean isPM10 = false;
 	static Boolean isPM25 = false;
+	static Boolean isPump = false;
 	static String resultPM10;
 	static String resultPM25;
 	static BigDecimal resultSO2 = null;
@@ -189,8 +199,10 @@ public class Main {
 	static String massHC = "";
 	static String txtHC = "";
 	static int intervalCheckInternet = 0;
+	static int pumpInterval = 0;
 	static String idEndDataLogRange = "-1";
 	static String idStartDataLogRange = "-1";
+	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	protected String readLabjack(String name) {
 		try {
@@ -356,15 +368,22 @@ public class Main {
 			execQuery("INSERT INTO serial_ports (port,description) VALUES ('" + portNames[i] +"','" + portNames[i] + "')");
 		}
 		
-		try { 
+		try {
 			serialPM10 = OpenSerial(portPM10, baudPM10);
 			isPM10 = true;
-		} catch (Exception e) {e.printStackTrace();}
+		} catch (Exception e) { }
 
-		try { 
+		try {
 			serialPM25 = OpenSerial(portPM25, baudPM25);
 			isPM25 = true;
-		} catch (Exception e) {e.printStackTrace();}
+		} catch (Exception e) { }
+
+		try {
+			serialPump = OpenSerial(portPump, baudPump);
+			isPump = true;
+			execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
+			execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+		} catch (Exception e) { }
 	}
 	
 	private void initParam() {
@@ -433,6 +452,12 @@ public class Main {
 		} catch (Exception e) { e.printStackTrace(); }
 		
 		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller'");
+			rs.next();
+			portPump = rs.getString("content");
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_pm10'");
 			rs.next();
 			baudPM10 = Integer.parseInt(rs.getString("content"));
@@ -444,6 +469,17 @@ public class Main {
 			baudPM25 = Integer.parseInt(rs.getString("content"));
 		} catch (Exception e) { e.printStackTrace(); }
 		
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller_baud'");
+			rs.next();
+			baudPump = Integer.parseInt(rs.getString("content"));
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_interval'");
+			rs.next();
+			pumpInterval = Integer.parseInt(rs.getString("content")) * 60;
+		} catch (Exception e) { e.printStackTrace(); }
 		
 	}
 	
@@ -570,6 +606,32 @@ public class Main {
 		initSerial();
 		timer1();
 		initChart();
+		timerClearLog();
+		timerPump();
+	}
+	
+	private void timerClearLog() {
+		timerClearLog.schedule( new TimerTask() {
+			public void run() {
+		    	execQuery("DELETE from data_log where waktu < (NOW() - INTERVAL 3 HOUR)");
+		    }
+		}, 0,3600000);
+	}
+	
+	private void timerPump() {
+		timerClearLog.schedule( new TimerTask() {
+			public void run() {
+				if(pumpInterval > 0) {
+					ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_last'");
+					try {
+						pump.next();
+						String timeStart = pump.getString("content");
+						Duration duration = Duration.between(LocalDateTime.parse(timeStart.substring(0, 19), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), LocalDateTime.now());
+						if(duration.getSeconds() > pumpInterval) btnPompa.doClick();
+					} catch (Exception e) { }
+				}
+		    }
+		}, 0,1000);
 	}
 	
 	private void timer1() {
@@ -864,6 +926,27 @@ public class Main {
 		btnData.setBounds(351,15,115,35);
 		
 		btnPompa = new JButton("Pompa 1");
+		btnPompa.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_state'");
+				try {
+					pump.next();
+					if(pump.getString("content").contentEquals("0")) {
+						execQuery("UPDATE configurations SET content = 1 WHERE data = 'pump_state'");
+						execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+						btnPompa.setText("POMPA 2");
+						btnPompa.setBackground(blue);
+						serialPump.writeBytes("j".getBytes());
+					} else {
+						execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
+						execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+						btnPompa.setText("POMPA 1");
+						btnPompa.setBackground(green);
+						serialPump.writeBytes("i".getBytes());
+					}
+				} catch (Exception e) { }
+			}
+		});
 		btnPompa.setMargin(new Insets(1,1,1,1));  
 		btnPompa.setFocusPainted(false);
 		btnPompa.setFont(btnFont);
