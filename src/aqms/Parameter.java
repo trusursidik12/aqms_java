@@ -34,10 +34,6 @@ public class Parameter {
 	static JTextField txtFormulaNO2;
 	static JTextField txtGainNO2;
 	static JTextField txtOffsetNO2;
-	static JTextField txtMolecularHC;
-	static JTextField txtFormulaHC;
-	static JTextField txtGainHC;
-	static JTextField txtOffsetHC;
 	
 	static JButton btnSimpan;
 	public static void main(String[] args) {
@@ -85,12 +81,6 @@ public class Parameter {
 					txtGainNO2.setText(Double.toString(conf.getDouble("gain")));
 					txtOffsetNO2.setText(Double.toString(conf.getDouble("offset")));
 				}
-				if(conf.getString("param_id").contentEquals("hc")){
-					txtMolecularHC.setText(Double.toString(conf.getDouble("molecular_mass")));
-					txtFormulaHC.setText(conf.getString("formula"));
-					txtGainHC.setText(Double.toString(conf.getDouble("gain")));
-					txtOffsetHC.setText(Double.toString(conf.getDouble("offset")));
-				}
 			}
 		} catch (Exception e) {e.printStackTrace();}
 	}
@@ -98,7 +88,7 @@ public class Parameter {
 	private void initialize() {
 		frame = new JFrame("PARAMETER");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/logotrusur.png")));
-		frame.setBounds(100,100,380,600);
+		frame.setBounds(50,50,380,500);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
@@ -183,26 +173,6 @@ public class Parameter {
 		lblNO2Formula.setBounds(20, 350, 70, 25);
 		txtFormulaNO2 = new JTextField(20);
 		txtFormulaNO2.setBounds(90, 350, 260, 25);
-
-		JLabel lblHC = new JLabel("HC");
-		lblHC.setFont(new Font("Arial", Font.BOLD, 14));
-		lblHC.setBounds(5, 385, 50, 30);		
-		JLabel lblHCMolecular = new JLabel("Molecular :");
-		lblHCMolecular.setBounds(20, 410, 70, 25);
-		txtMolecularHC = new JTextField(20);
-		txtMolecularHC.setBounds(90, 410, 50, 25);		
-		JLabel lblHCGain = new JLabel("Gain :");
-		lblHCGain.setBounds(155, 410, 50, 25);
-		txtGainHC = new JTextField(20);
-		txtGainHC.setBounds(190, 410, 50, 25);		
-		JLabel lblHCOffset = new JLabel("Offset :");
-		lblHCOffset.setBounds(255, 410, 60, 25);
-		txtOffsetHC = new JTextField(20);
-		txtOffsetHC.setBounds(300, 410, 50, 25);
-		JLabel lblHCFormula = new JLabel("Formula :");
-		lblHCFormula.setBounds(20, 445, 70, 25);
-		txtFormulaHC = new JTextField(20);
-		txtFormulaHC.setBounds(90, 445, 260, 25);
 		
 		btnSimpan = new JButton("Simpan");
 		btnSimpan.addActionListener(new ActionListener() {
@@ -211,12 +181,11 @@ public class Parameter {
 				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularCO.getText() + "',formula='" + txtFormulaCO.getText() + "',gain='" + txtGainCO.getText() + "',offset='" + txtOffsetCO.getText() + "' WHERE param_id='co'");
 				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularO3.getText() + "',formula='" + txtFormulaO3.getText() + "',gain='" + txtGainO3.getText() + "',offset='" + txtOffsetO3.getText() + "' WHERE param_id='o3'");
 				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularNO2.getText() + "',formula='" + txtFormulaNO2.getText() + "',gain='" + txtGainNO2.getText() + "',offset='" + txtOffsetNO2.getText() + "' WHERE param_id='no2'");
-				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularHC.getText() + "',formula='" + txtFormulaHC.getText() + "',gain='" + txtGainHC.getText() + "',offset='" + txtOffsetHC.getText() + "' WHERE param_id='hc'");
 				 JOptionPane.showMessageDialog(null, "Data tersimpan");
 			}
 		});
 		
-		btnSimpan.setBounds(100, 490, 170, 50);
+		btnSimpan.setBounds(100, 390, 170, 50);
 		
 		contentPane.add(lblSO2);
 		contentPane.add(lblSO2Molecular);
@@ -254,15 +223,6 @@ public class Parameter {
 		contentPane.add(txtOffsetNO2);
 		contentPane.add(lblNO2Formula);
 		contentPane.add(txtFormulaNO2);
-		contentPane.add(lblHC);
-		contentPane.add(lblHCMolecular);
-		contentPane.add(txtMolecularHC);
-		contentPane.add(lblHCGain);
-		contentPane.add(txtGainHC);
-		contentPane.add(lblHCOffset);
-		contentPane.add(txtOffsetHC);
-		contentPane.add(lblHCFormula);
-		contentPane.add(txtFormulaHC);
 		contentPane.add(btnSimpan);
 		
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));

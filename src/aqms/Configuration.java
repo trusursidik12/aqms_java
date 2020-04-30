@@ -33,6 +33,18 @@ public class Configuration {
 	static JTextField txtBaudPM25;
 	static JTextField txtPortPump;
 	static JTextField txtBaudPump;
+	static JTextField txtPortHC;
+	static JTextField txtBaudHC;
+	static JTextField txtPortPwm;
+	static JTextField txtBaudPwm;
+	static JTextField txtPortWs;
+	static JTextField txtBaudWs;
+	static String valPortHC;
+	static String valBaudHC;
+	static String valPortPwm;
+	static String valBaudPwm;
+	static String valPortWs;
+	static String valBaudWs;
 	static JButton btnSimpan;
 
 	public static void main(String[] args) {
@@ -67,6 +79,30 @@ public class Configuration {
 				if(conf.getString("data").contentEquals("baud_pm25")) txtBaudPM25.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("controller")) txtPortPump.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("controller_baud")) txtBaudPump.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("com_hc")) {
+					txtPortHC.setText(conf.getString("content"));
+					valPortHC = conf.getString("content");
+				}
+				if(conf.getString("data").contentEquals("baud_hc")) {
+					txtBaudHC.setText(conf.getString("content"));
+					valBaudHC = conf.getString("content");
+				}
+				if(conf.getString("data").contentEquals("com_pwm")) {
+					txtPortPwm.setText(conf.getString("content"));
+					valPortPwm = conf.getString("content");
+				}
+				if(conf.getString("data").contentEquals("baud_pwm")) {
+					txtBaudPwm.setText(conf.getString("content"));
+					valBaudPwm = conf.getString("content");
+				}
+				if(conf.getString("data").contentEquals("com_ws")) {
+					txtPortWs.setText(conf.getString("content"));
+					valPortWs = conf.getString("content");
+				}
+				if(conf.getString("data").contentEquals("baud_ws")) {
+					txtBaudWs.setText(conf.getString("content"));
+					valBaudWs = conf.getString("content");
+				}
 				if(conf.getString("data").contentEquals("pump_interval")) txtIntervalPompa.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("pump_control")) txtKontrolerPompa.setText(conf.getString("content"));
 			}
@@ -76,7 +112,7 @@ public class Configuration {
 	private void initialize() {
 		frame = new JFrame("KONFIGURASI");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/logotrusur.png")));
-		frame.setBounds(100,100,650,300);
+		frame.setBounds(100,100,650,400);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
@@ -100,7 +136,7 @@ public class Configuration {
 		lblLongitude.setBounds(5, 180, 200, 20);
 		JLabel lblIntervalPompa = new JLabel("Interval Pompa (menit)");
 		lblIntervalPompa.setBounds(5, 205, 200, 20);
-		JLabel lblKontrolerPompa = new JLabel("Kontroler Pompa (1=Show;0=Hide)");
+		JLabel lblKontrolerPompa = new JLabel("Speed Pompa (1-100)");
 		lblKontrolerPompa.setBounds(5, 230, 200, 20);
 		
 		JLabel lblPortPM10 = new JLabel("Port PM10");
@@ -109,12 +145,24 @@ public class Configuration {
 		JLabel lblBaudPM25 = new JLabel("Baud PM25");
 		JLabel lblPortPump = new JLabel("Port Pump");
 		JLabel lblBaudPump = new JLabel("Baud Pump");
+		JLabel lblPortHC = new JLabel("Port HC");
+		JLabel lblBaudHC = new JLabel("Baud HC");
+		JLabel lblPortPwm = new JLabel("Port PWM");
+		JLabel lblBaudPwm = new JLabel("Baud PWM");
+		JLabel lblPortWs = new JLabel("Port WS");
+		JLabel lblBaudWs = new JLabel("Baud WS");
 		lblPortPM10.setBounds(450, 5, 70, 20);
 		lblBaudPM10.setBounds(450, 30, 70, 20);
 		lblPortPM25.setBounds(450, 55, 70, 20);
 		lblBaudPM25.setBounds(450, 80, 70, 20);
 		lblPortPump.setBounds(450, 105, 70, 20);
 		lblBaudPump.setBounds(450, 130, 70, 20);
+		lblPortHC.setBounds(450, 155, 70, 20);
+		lblBaudHC.setBounds(450, 180, 70, 20);
+		lblPortPwm.setBounds(450, 205, 70, 20);
+		lblBaudPwm.setBounds(450, 230, 70, 20);
+		lblPortWs.setBounds(450, 255, 70, 20);
+		lblBaudWs.setBounds(450, 280, 70, 20);
 		
 		txtDeviceId = new JTextField(20);
 		txtStasiunId = new JTextField(100);
@@ -132,6 +180,12 @@ public class Configuration {
 		txtBaudPM25 = new JTextField(10);
 		txtPortPump = new JTextField(20);
 		txtBaudPump = new JTextField(10);
+		txtPortHC = new JTextField(20);
+		txtBaudHC = new JTextField(10);
+		txtPortPwm = new JTextField(20);
+		txtBaudPwm = new JTextField(10);
+		txtPortWs = new JTextField(20);
+		txtBaudWs = new JTextField(10);
 		btnSimpan = new JButton("Simpan");
 		btnSimpan.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -149,6 +203,36 @@ public class Configuration {
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudPM25.getText() + "' WHERE data='baud_pm25'");
 				Main.execQuery("UPDATE configurations SET content='" + txtPortPump.getText() + "' WHERE data='controller'");
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudPump.getText() + "' WHERE data='controller_baud'");
+				if(valPortHC == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_hc','" + txtPortHC.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtPortHC.getText() + "' WHERE data='com_hc'");
+				}
+				if(valBaudHC == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_hc','" + txtBaudHC.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtBaudHC.getText() + "' WHERE data='baud_hc'");
+				}
+				if(valPortPwm == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_pwm','" + txtPortPwm.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtPortPwm.getText() + "' WHERE data='com_pwm'");
+				}
+				if(valBaudPwm == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_pwm','" + txtBaudPwm.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtBaudPwm.getText() + "' WHERE data='baud_pwm'");
+				}
+				if(valPortWs == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_ws','" + txtPortWs.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtPortWs.getText() + "' WHERE data='com_ws'");
+				}
+				if(valBaudWs == null) {
+					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_ws','" + txtBaudWs.getText() + "')");
+				} else {
+					Main.execQuery("UPDATE configurations SET content='" + txtBaudWs.getText() + "' WHERE data='baud_ws'");
+				}
 				Main.execQuery("UPDATE configurations SET content='" + txtIntervalPompa.getText() + "' WHERE data='pump_interval'");
 				Main.execQuery("UPDATE configurations SET content='" + txtKontrolerPompa.getText() + "' WHERE data='pump_control'");
 				JOptionPane.showMessageDialog(null, "Data tersimpan");
@@ -170,7 +254,13 @@ public class Configuration {
 		txtBaudPM25.setBounds(520, 80, 100, 20);
 		txtPortPump.setBounds(520, 105, 100, 20);
 		txtBaudPump.setBounds(520, 130, 100, 20);
-		btnSimpan.setBounds(450, 165, 170, 50);
+		txtPortHC.setBounds(520, 155, 100, 20);
+		txtBaudHC.setBounds(520, 180, 100, 20);
+		txtPortPwm.setBounds(520, 205, 100, 20);
+		txtBaudPwm.setBounds(520, 230, 100, 20);
+		txtPortWs.setBounds(520, 255, 100, 20);
+		txtBaudWs.setBounds(520, 280, 100, 20);
+		btnSimpan.setBounds(450, 305, 100, 50);
 		
 		contentPane.add(lblDeviceId);
 		contentPane.add(lblStasiunId);
@@ -198,12 +288,24 @@ public class Configuration {
 		contentPane.add(lblBaudPM25);
 		contentPane.add(lblPortPump);
 		contentPane.add(lblBaudPump);
+		contentPane.add(lblPortHC);
+		contentPane.add(lblBaudHC);
+		contentPane.add(lblPortPwm);
+		contentPane.add(lblBaudPwm);
+		contentPane.add(lblPortWs);
+		contentPane.add(lblBaudWs);
 		contentPane.add(txtPortPM10);
 		contentPane.add(txtBaudPM10);
 		contentPane.add(txtPortPM25);
 		contentPane.add(txtBaudPM25);
 		contentPane.add(txtPortPump);
 		contentPane.add(txtBaudPump);
+		contentPane.add(txtPortHC);
+		contentPane.add(txtBaudHC);
+		contentPane.add(txtPortPwm);
+		contentPane.add(txtBaudPwm);
+		contentPane.add(txtPortWs);
+		contentPane.add(txtBaudWs);
 		contentPane.add(btnSimpan);
 		
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));

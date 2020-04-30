@@ -64,6 +64,7 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.awt.event.ActionEvent;
@@ -80,6 +81,13 @@ public class Main {
 	private JPanel o3Pane;
 	private JPanel no2Pane;
 	private JPanel hcPane;
+	private JPanel barPane;
+	private JPanel tempPane;
+	private JPanel humidityPane;
+	private JPanel windspeedPane;
+	private JPanel windDirPane;
+	private JPanel rainRatePane;
+	private JPanel solarRadPane;
 	private JPanel chartPane;
 	private JLabel lblLocation;
 	private JLabel lblInternet;
@@ -94,6 +102,13 @@ public class Main {
 	private JLabel lblO3;
 	private JLabel lblNO2;
 	private JLabel lblHC;
+	private JLabel lblBar;
+	private JLabel lblTemp;
+	private JLabel lblHumidity;
+	private JLabel lblWindspeed;
+	private JLabel lblWindDir;
+	private JLabel lblRainRate;
+	private JLabel lblSolarRad;
 	private JLabel lblPM10flow;
 	private JLabel lblPM25flow;
 	private JLabel lblSO2sat;
@@ -101,6 +116,13 @@ public class Main {
 	private JLabel lblO3sat;
 	private JLabel lblNO2sat;
 	private JLabel lblHCsat;
+	private JLabel lblBarsat;
+	private JLabel lblTempsat;
+	private JLabel lblHumiditysat;
+	private JLabel lblWindspeedsat;
+	private JLabel lblWindDirsat;
+	private JLabel lblRainRatesat;
+	private JLabel lblSolarRadsat;
 	private JLabel lblPM10val;
 	private JLabel lblPM25val;
 	private JLabel lblSO2val;
@@ -108,6 +130,13 @@ public class Main {
 	private JLabel lblO3val;
 	private JLabel lblNO2val;
 	private JLabel lblHCval;
+	private JLabel lblBarval;
+	private JLabel lblTempval;
+	private JLabel lblHumidityval;
+	private JLabel lblWindspeedval;
+	private JLabel lblWindDirval;
+	private JLabel lblRainRateval;
+	private JLabel lblSolarRadval;
 	private JButton btnKonfigurasi;
 	private JButton btnParameter;
 	private JButton btnData;
@@ -132,23 +161,33 @@ public class Main {
 	static String satuan = "ppm";
 	static SerialPort serialPM10;
 	static SerialPort serialPM25;
+	static SerialPort serialHC;
+	static SerialPort serialPwm;
 	static SerialPort serialPump;
 	static String portPM10;
 	static String portPM25;
+	static String portHC;
+	static String portPwm;
 	static String portPump;
+	static String portWS;
 	static int baudPM10;
 	static int baudPM25;
+	static int baudHC;
+	static int baudPwm;
 	static int baudPump;
+	static int baudWS;
 	static Boolean isPM10 = false;
 	static Boolean isPM25 = false;
+	static Boolean isHC = false;
+	static Boolean isPwm = false;
 	static Boolean isPump = false;
 	static String resultPM10;
 	static String resultPM25;
+	static String resultHC;
 	static BigDecimal resultSO2 = null;
 	static BigDecimal resultCO = null;
 	static BigDecimal resultO3 = null;
 	static BigDecimal resultNO2 = null;
-	static BigDecimal resultHC = null;
 	static Double ppmSO2 = null;
 	static Double ppmCO = null;
 	static Double ppmO3 = null;
@@ -198,8 +237,19 @@ public class Main {
 	static String offsetHC = "";
 	static String massHC = "";
 	static String txtHC = "";
+	static String txtBarometer = "";
+	static String txtTemp = "";
+	static String txtHumidity = "";
+	static String txtWindspeed = "";
+	static String txtWindDir = "";
+	static String txtRainRate = "";
+	static String txtSolarRad = "";
 	static int intervalCheckInternet = 0;
 	static int pumpInterval = 0;
+	static int pwmtrynum = 0;
+	static int serialWaiting = 0;
+	static String pumpSpeed = "0";
+	static String pumpSpeedCurr = "1";
 	static String idEndDataLogRange = "-1";
 	static String idStartDataLogRange = "-1";
 	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -378,12 +428,25 @@ public class Main {
 			isPM25 = true;
 		} catch (Exception e) { }
 
+
+		try {
+			serialHC = OpenSerial(portHC, baudHC);
+			isHC = true;
+		} catch (Exception e) { }
+
 		try {
 			serialPump = OpenSerial(portPump, baudPump);
 			isPump = true;
 			execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
 			execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
 		} catch (Exception e) { }
+		
+		try {
+			serialPwm = OpenSerial(portPwm, baudPwm);
+			isPwm = true;
+		} catch (Exception e) { }
+		timer1();
+		timerPump();
 	}
 	
 	private void initParam() {
@@ -452,9 +515,27 @@ public class Main {
 		} catch (Exception e) { e.printStackTrace(); }
 		
 		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_hc'");
+			rs.next();
+			portHC = rs.getString("content");
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller'");
 			rs.next();
 			portPump = rs.getString("content");
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_pwm'");
+			rs.next();
+			portPwm = rs.getString("content");
+		} catch (Exception e) { e.printStackTrace(); }
+
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_ws'");
+			rs.next();
+			portWS = rs.getString("content");
 		} catch (Exception e) { e.printStackTrace(); }
 		
 		try {
@@ -468,6 +549,13 @@ public class Main {
 			rs.next();
 			baudPM25 = Integer.parseInt(rs.getString("content"));
 		} catch (Exception e) { e.printStackTrace(); }
+
+		
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_hc'");
+			rs.next();
+			baudHC = Integer.parseInt(rs.getString("content"));
+		} catch (Exception e) { e.printStackTrace(); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller_baud'");
@@ -476,9 +564,21 @@ public class Main {
 		} catch (Exception e) { e.printStackTrace(); }
 		
 		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_pwm'");
+			rs.next();
+			baudPwm = Integer.parseInt(rs.getString("content"));
+		} catch (Exception e) { e.printStackTrace(); }
+		
+		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_interval'");
 			rs.next();
 			pumpInterval = Integer.parseInt(rs.getString("content")) * 60;
+		} catch (Exception e) { e.printStackTrace(); }
+
+		try {
+			rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_control'");
+			rs.next();
+			pumpSpeed = rs.getString("content");
 		} catch (Exception e) { e.printStackTrace(); }
 		
 	}
@@ -503,13 +603,13 @@ public class Main {
         String waktu;
         Double logSO2;
         Double logCO;
-        //Double logO3;
+        Double logO3;
         Double logNO2;
         Double logHC;
         
         TimeSeries serSO2 = new TimeSeries("SO2");
         TimeSeries serCO = new TimeSeries("CO");
-        //TimeSeries serO3 = new TimeSeries("O3");
+        TimeSeries serO3 = new TimeSeries("O3");
         TimeSeries serNO2 = new TimeSeries("NO2");
         TimeSeries serHC = new TimeSeries("HC");
         
@@ -519,7 +619,7 @@ public class Main {
         		waktu = datalog.getString("waktu");
         		logSO2 = datalog.getDouble("so2");
         		logCO = datalog.getDouble("co");
-        		//logO3 = datalog.getDouble("o3");
+        		logO3 = datalog.getDouble("o3");
         		logNO2 = datalog.getDouble("no2");
         		logHC = datalog.getDouble("hc");
         		
@@ -533,7 +633,7 @@ public class Main {
         		
         		serSO2.add(sec, logSO2);
         		serCO.add(sec, logCO);
-        		//serO3.add(sec, logO3);
+        		serO3.add(sec, logO3);
         		serNO2.add(sec, logNO2);
         		serHC.add(sec, logHC);
         		
@@ -542,7 +642,7 @@ public class Main {
         
         dataset.addSeries(serSO2);
         dataset.addSeries(serCO);
-        //dataset.addSeries(serO3);
+        dataset.addSeries(serO3);
         dataset.addSeries(serNO2);
         dataset.addSeries(serHC);
         
@@ -599,15 +699,93 @@ public class Main {
 			} catch (Exception e) { JOptionPane.showMessageDialog(null, "Ada kesalahan, silakan hubungi technical support!"); }
 		}
 	}
+	
+	private void readVantagePro2() {
+		try {
+			ProcessBuilder processBuilder = new ProcessBuilder();
+			processBuilder.command("cmd.exe", "/c", "C:\\vantagepro2_reader\\vantagepro2_reader.exe " + portWS);
+			Process process = processBuilder.start();
+			StringBuilder output = new StringBuilder();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				output.append(line + "\n");
+			}
+			int exitVal = process.waitFor();
+			if (exitVal == 0) {
+				DecimalFormat decimalFormat = new DecimalFormat(".#");
+				if(!output.toString().contains("Error")) {
+					String[] WS = output.toString().split(";");
+					txtBarometer = WS[2];
+					txtBarometer = decimalFormat.format((Double.parseDouble(txtBarometer) * 33.8639));
+					txtTemp = WS[5];
+					txtTemp = decimalFormat.format(((Double.parseDouble(txtTemp) - 32) * 5/9));
+					txtHumidity = WS[9];
+					txtWindspeed = WS[6];
+					txtWindDir = WS[8];
+					txtRainRate = WS[10];//15
+					txtRainRate = decimalFormat.format((Double.parseDouble(txtRainRate) * 25.4));
+					txtSolarRad = WS[12];
+				} else {
+					txtBarometer = "0.0";
+					txtTemp = "0.0";
+					txtHumidity = "0.0";
+					txtWindspeed = "0.0";
+					txtWindDir = "0.0";
+					txtRainRate = "0.0";
+					txtSolarRad = "0.0";
+				}
+				
+				lblBarval.setText(txtBarometer);
+				lblTempval.setText(txtTemp);
+				lblHumidityval.setText(txtHumidity);
+				lblWindspeedval.setText(txtWindspeed);
+				lblWindDirval.setText(txtWindDir);
+				lblRainRateval.setText(txtRainRate);
+				lblSolarRadval.setText(txtSolarRad);
+			}
+		} catch (IOException e) {
+			lblBarval.setText("0.0");
+			lblTempval.setText("0.0");
+			lblHumidityval.setText("0.0");
+			lblWindspeedval.setText("0.0");
+			lblWindDirval.setText("0.0");
+			lblRainRateval.setText("0.0");
+			lblSolarRadval.setText("0.0");
+		} catch (InterruptedException e) {
+			lblBarval.setText("0.0");
+			lblTempval.setText("0.0");
+			lblHumidityval.setText("0.0");
+			lblWindspeedval.setText("0.0");
+			lblWindDirval.setText("0.0");
+			lblRainRateval.setText("0.0");
+			lblSolarRadval.setText("0.0");
+		}
+	}
 
 	public Main() {
 		initialize();
 		initParam();
-		initSerial();
-		timer1();
-		initChart();
+		timerClock();
+		timerWeather();
 		timerClearLog();
-		timerPump();
+		initChart();
+//		initSerial();
+//		timer1();
+//		timerPump();
+	}
+	
+	private void timerClock() {
+		timerClearLog.schedule( new TimerTask() {
+			public void run() {
+				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");  
+				LocalDateTime now = LocalDateTime.now();  
+				lblTime.setText(dtf.format(now));
+				dtf = DateTimeFormatter.ofPattern("dd MMMM yyyy");  
+				now = LocalDateTime.now();  
+				lblDate.setText(dtf.format(now));
+			}
+		}, 0,1000);
 	}
 	
 	private void timerClearLog() {
@@ -616,6 +794,19 @@ public class Main {
 		    	execQuery("DELETE from data_log where waktu < (NOW() - INTERVAL 3 HOUR)");
 		    }
 		}, 0,3600000);
+	}
+	
+	private void timerWeather() {
+		timerClearLog.schedule( new TimerTask() {
+			public void run() {
+				readVantagePro2();
+				if(serialWaiting < 52) serialWaiting++;
+				if(serialWaiting == 40) initSerial();
+				if(intervalCheckInternet > 30) intervalCheckInternet = 0;
+				if(intervalCheckInternet == 0) checkInternet();
+				intervalCheckInternet++;
+			}
+		}, 0,1000);
 	}
 	
 	private void timerPump() {
@@ -630,6 +821,19 @@ public class Main {
 						if(duration.getSeconds() > pumpInterval) btnPompa.doClick();
 					} catch (Exception e) { }
 				}
+				
+				try {
+					ResultSet rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_control'");
+					rs.next();
+					pumpSpeed = rs.getString("content");
+				} catch (Exception e) { }
+				try {
+					if(!pumpSpeedCurr.contentEquals(pumpSpeed)) {
+						serialPwm.writeBytes(pumpSpeed.getBytes());
+						if(pwmtrynum > 3) pumpSpeedCurr = pumpSpeed;
+						if(pwmtrynum <= 3) pwmtrynum++;
+					}
+				} catch (SerialPortException e) { }
 		    }
 		}, 0,1000);
 	}
@@ -638,91 +842,69 @@ public class Main {
 		timer1.schedule( new TimerTask() {
 		    @SuppressWarnings("unchecked")
 			public void run() {
-		    	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");  
-				LocalDateTime now = LocalDateTime.now();  
-				lblTime.setText(dtf.format(now));
-				dtf = DateTimeFormatter.ofPattern("dd MMMM yyyy");  
-				now = LocalDateTime.now();  
-				lblDate.setText(dtf.format(now));
-				
-				if(intervalCheckInternet > 30) intervalCheckInternet = 0;
-				if(intervalCheckInternet == 0) checkInternet();
-				intervalCheckInternet++;
-				
 		    	try {
 					String ain0 = readLabjack("AIN0");
 					String ain1 = readLabjack("AIN1");
 					String ain2 = readLabjack("AIN2");
 					String ain3 = readLabjack("AIN3");
-					String ain4 = readLabjack("AIN4");
 					
-					resultSO2 = expSO2.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainSO2).and("offset",offsetSO2).eval();
-					resultCO = expCO.with("AIN1",ain1).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainCO).and("offset",offsetCO).eval();
-					resultO3 = expO3.with("AIN2",ain2).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainO3).and("offset",offsetO3).eval();
-					resultNO2 = expNO2.with("AIN3",ain3).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainNO2).and("offset",offsetNO2).eval();
-					resultHC = expHC.with("AIN4",ain4).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("AIN4",ain4).and("gain",gainHC).and("offset",offsetHC).eval();
+					resultSO2 = expSO2.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainSO2).and("offset",offsetSO2).eval();
+					resultCO = expCO.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainCO).and("offset",offsetCO).eval();
+					resultO3 = expO3.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainO3).and("offset",offsetO3).eval();
+					resultNO2 = expNO2.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainNO2).and("offset",offsetNO2).eval();
 					
 					ppmSO2 = resultSO2.doubleValue();
 					ppmCO = resultCO.doubleValue();
 					ppmO3 = resultO3.doubleValue();
 					ppmNO2 = resultNO2.doubleValue();
-					ppmHC = resultHC.doubleValue();
 					
 					if(ppmSO2 < 0) ppmSO2 = new Double("0");
 					if(ppmCO < 0) ppmCO = new Double("0");
 					if(ppmO3 < 0) ppmO3 = new Double("0");
 					if(ppmNO2 < 0) ppmNO2 = new Double("0");
-					if(ppmHC < 0) ppmHC = new Double("0");
 					
 					ppbSO2 = ppmSO2 * 1000;
 					ppbCO = ppmCO * 1000;
 					ppbO3 = ppmO3 * 1000;
 					ppbNO2 = ppmNO2 * 1000;
-					ppbHC = ppmHC * 1000;
 					
 					ugSO2 = ppbSO2 * Double.parseDouble(massSO2) / 24.45;
 					ugCO = ppbCO * Double.parseDouble(massCO) / 24.45;
 					ugO3 = ppbO3 * Double.parseDouble(massO3) / 24.45;
 					ugNO2 = ppbNO2 * Double.parseDouble(massNO2) / 24.45;
-					ugHC = ppbHC * Double.parseDouble(massHC) / 24.45;
 					
 					if(satuan == "ppm") {
 						showSO2 = ppmSO2;
 						showCO = ppmCO;
 						showO3 = ppmO3;
 						showNO2 = ppmNO2;
-						showHC = ppmHC;
 					} else if(satuan == "ppb") {
 						showSO2 = ppbSO2;
 						showCO = ppbCO;
 						showO3 = ppbO3;
 						showNO2 = ppbNO2;
-						showHC = ppbHC;
 					} else if(satuan == "ug") {
 						showSO2 = ugSO2;
 						showCO = ugCO;
 						showO3 = ugO3;
 						showNO2 = ugNO2;
-						showHC = ugHC;
 					}
 					
 					txtSO2 = new DecimalFormat("#.###").format(showSO2);
 					txtCO = new DecimalFormat("#.###").format(showCO);
 					txtO3 = new DecimalFormat("#.###").format(showO3);
 					txtNO2 = new DecimalFormat("#.###").format(showNO2);
-					txtHC = new DecimalFormat("#.###").format(showHC);
 				} catch (Exception e) { 
 					ugSO2 = new Double("0");
 					ugCO = new Double("0");
 					ugO3 = new Double("0");
 					ugNO2 = new Double("0");
-					ugHC = new Double("0");
 					txtSO2 = "0";
 					txtCO = "0";
 					txtO3 = "0";
 					txtNO2 = "0";
-					txtHC = "0";
 				}
+		    	
 		    	try {
 		    		if(isPM10) {
 						resultPM10 = serialPM10.readString();
@@ -743,6 +925,29 @@ public class Main {
 		    	} catch (Exception e) {
 		    		txtPM25 = "0";
 		    		txtPM25flow = "0.0";
+		    	}
+
+		    	try {
+		    		if(isHC) {
+						resultHC = serialHC.readString().trim();
+						ppbHC = Double.parseDouble(resultHC);
+						if(ppbHC < 0) ppbHC = new Double("0");
+						ppmHC = ppbHC / 1000;
+						ugHC = ppbHC * Double.parseDouble(massHC) / 24.45;
+						
+						if(satuan == "ppm") {
+							showHC = ppmHC;
+						} else if(satuan == "ppb") {
+							showHC = ppbHC;
+						} else if(satuan == "ug") {
+							showHC = ugHC;
+						}
+						txtHC = new DecimalFormat("#.###").format(showHC);
+		    		}
+		    	} catch (Exception e) {
+		    		txtHC = "0";
+					ugHC = new Double("0");
+					txtHC = "0";
 		    	}
 		    	
 		    	lblPM10val.setText(txtPM10 + " ug/m3");
@@ -806,6 +1011,13 @@ public class Main {
 						params.put("o3", aqmData.getDouble("o3"));
 						params.put("no2", aqmData.getDouble("no2"));
 						params.put("hc", aqmData.getDouble("hc"));
+						params.put("ws", txtWindspeed);
+						params.put("wd", txtWindDir);
+						params.put("humidity", txtHumidity);
+						params.put("temperature", txtTemp);
+						params.put("pressure", txtBarometer);
+						params.put("sr", txtSolarRad);
+						params.put("rain_intensity", txtRainRate);
 						if(putData(params).trim().contentEquals("success:1")){
 							execQuery("UPDATE data SET is_sent=1,sent_at=NOW() WHERE id = '" + aqmData.getDouble("id") + "'");
 						}
@@ -1233,7 +1445,230 @@ public class Main {
 		contentPane.add(hcPane, BorderLayout.CENTER);
 		/*END PANEL HC ========================================================================================*/
 		
-
+		/*PANEL BAROMETER ========================================================================================*/
+		lblBar = new JLabel();
+		lblBar.setText("Tekanan");
+		lblBar.setFont(new Font("Arial", Font.BOLD, 12));
+		lblBar.setForeground(white);
+		lblBar.setBounds(5,2,100,25);
+		lblBarval = new JLabel();
+		lblBarval.setText("0.0");
+		lblBarval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblBarval.setForeground(lime);
+		lblBarval.setBounds(60,25,150,35);
+		lblBarsat = new JLabel();
+		lblBarsat.setText("(MBar)");
+		lblBarsat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblBarsat.setForeground(white);
+		lblBarsat.setBounds(110,2,70,25);
+		barPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		barPane.setBounds(12,316,170,55);
+		barPane.add(lblBar);
+		barPane.add(lblBarval);
+		barPane.add(lblBarsat);
+		barPane.setBorder(borderPane);
+		barPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(barPane, BorderLayout.CENTER);
+		/*END PANEL BAROMETER ========================================================================================*/
+		
+		/*PANEL TEMP ========================================================================================*/
+		lblTemp = new JLabel();
+		lblTemp.setText("Temperatur");
+		lblTemp.setFont(new Font("Arial", Font.BOLD, 12));
+		lblTemp.setForeground(white);
+		lblTemp.setBounds(5,2,100,25);
+		lblTempval = new JLabel();
+		lblTempval.setText("0.0");
+		lblTempval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblTempval.setForeground(lime);
+		lblTempval.setBounds(60,25,150,35);
+		lblTempsat = new JLabel();
+		lblTempsat.setText("(Celcius)");
+		lblTempsat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblTempsat.setForeground(white);
+		lblTempsat.setBounds(110,2,70,25);
+		tempPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		tempPane.setBounds(190,316,170,55);
+		tempPane.add(lblTemp);
+		tempPane.add(lblTempval);
+		tempPane.add(lblTempsat);
+		tempPane.setBorder(borderPane);
+		tempPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(tempPane, BorderLayout.CENTER);
+		/*END PANEL TEMP ========================================================================================*/	
+		
+		/*PANEL HUMIDITY ========================================================================================*/
+		lblHumidity = new JLabel();
+		lblHumidity.setText("Kelembaban");
+		lblHumidity.setFont(new Font("Arial", Font.BOLD, 12));
+		lblHumidity.setForeground(white);
+		lblHumidity.setBounds(5,2,100,25);
+		lblHumidityval = new JLabel();
+		lblHumidityval.setText("0.0");
+		lblHumidityval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblHumidityval.setForeground(lime);
+		lblHumidityval.setBounds(60,25,150,35);
+		lblHumiditysat = new JLabel();
+		lblHumiditysat.setText("(%)");
+		lblHumiditysat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblHumiditysat.setForeground(white);
+		lblHumiditysat.setBounds(110,2,70,25);
+		humidityPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		humidityPane.setBounds(12,379,170,55);
+		humidityPane.add(lblHumidity);
+		humidityPane.add(lblHumidityval);
+		humidityPane.add(lblHumiditysat);
+		humidityPane.setBorder(borderPane);
+		humidityPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(humidityPane, BorderLayout.CENTER);
+		/*END PANEL HUMIDITY ========================================================================================*/
+		
+		/*PANEL RAINRATE ========================================================================================*/
+		lblRainRate = new JLabel();
+		lblRainRate.setText("Curah Hujan");
+		lblRainRate.setFont(new Font("Arial", Font.BOLD, 12));
+		lblRainRate.setForeground(white);
+		lblRainRate.setBounds(5,2,100,25);
+		lblRainRateval = new JLabel();
+		lblRainRateval.setText("0.0");
+		lblRainRateval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblRainRateval.setForeground(lime);
+		lblRainRateval.setBounds(60,25,150,35);
+		lblRainRatesat = new JLabel();
+		lblRainRatesat.setText("(mm/jam)");
+		lblRainRatesat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblRainRatesat.setForeground(white);
+		lblRainRatesat.setBounds(110,2,70,25);
+		rainRatePane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		rainRatePane.setBounds(190,379,170,55);
+		rainRatePane.add(lblRainRate);
+		rainRatePane.add(lblRainRateval);
+		rainRatePane.add(lblRainRatesat);
+		rainRatePane.setBorder(borderPane);
+		rainRatePane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(rainRatePane, BorderLayout.CENTER);
+		/*END PANEL RAINRATE ========================================================================================*/	
+		
+		/*PANEL WINDSPEED ========================================================================================*/
+		lblWindspeed = new JLabel();
+		lblWindspeed.setText("Kec. Angin");
+		lblWindspeed.setFont(new Font("Arial", Font.BOLD, 12));
+		lblWindspeed.setForeground(white);
+		lblWindspeed.setBounds(5,2,100,25);
+		lblWindspeedval = new JLabel();
+		lblWindspeedval.setText("0.0");
+		lblWindspeedval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblWindspeedval.setForeground(lime);
+		lblWindspeedval.setBounds(60,25,150,35);
+		lblWindspeedsat = new JLabel();
+		lblWindspeedsat.setText("(Km/jam)");
+		lblWindspeedsat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblWindspeedsat.setForeground(white);
+		lblWindspeedsat.setBounds(110,2,70,25);
+		windspeedPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		windspeedPane.setBounds(12,442,170,55);
+		windspeedPane.add(lblWindspeed);
+		windspeedPane.add(lblWindspeedval);
+		windspeedPane.add(lblWindspeedsat);
+		windspeedPane.setBorder(borderPane);
+		windspeedPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(windspeedPane, BorderLayout.CENTER);
+		/*END PANEL WINDSPEED ========================================================================================*/
+		
+		/*PANEL WINDDIR ========================================================================================*/
+		lblWindDir = new JLabel();
+		lblWindDir.setText("Arah Angin");
+		lblWindDir.setFont(new Font("Arial", Font.BOLD, 12));
+		lblWindDir.setForeground(white);
+		lblWindDir.setBounds(5,2,100,25);
+		lblWindDirval = new JLabel();
+		lblWindDirval.setText("0.0");
+		lblWindDirval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblWindDirval.setForeground(lime);
+		lblWindDirval.setBounds(60,25,150,35);
+		lblWindDirsat = new JLabel();
+		lblWindDirsat.setText("(°)");
+		lblWindDirsat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblWindDirsat.setForeground(white);
+		lblWindDirsat.setBounds(110,2,70,25);
+		windDirPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		windDirPane.setBounds(190,442,170,55);
+		windDirPane.add(lblWindDir);
+		windDirPane.add(lblWindDirval);
+		windDirPane.add(lblWindDirsat);
+		windDirPane.setBorder(borderPane);
+		windDirPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(windDirPane, BorderLayout.CENTER);
+		/*END PANEL WINDDIR ========================================================================================*/
+		
+		/*PANEL SOLARRAD ========================================================================================*/
+		lblSolarRad = new JLabel();
+		lblSolarRad.setText("Solar Radiasi");
+		lblSolarRad.setFont(new Font("Arial", Font.BOLD, 12));
+		lblSolarRad.setForeground(white);
+		lblSolarRad.setBounds(5,2,100,25);
+		lblSolarRadval = new JLabel();
+		lblSolarRadval.setText("0.0");
+		lblSolarRadval.setFont(new Font("Arial", Font.BOLD, 24));
+		lblSolarRadval.setForeground(lime);
+		lblSolarRadval.setBounds(60,25,150,35);
+		lblSolarRadsat = new JLabel();
+		lblSolarRadsat.setText("(watt/m2)");
+		lblSolarRadsat.setFont(new Font("Arial", Font.BOLD, 12));
+		lblSolarRadsat.setForeground(white);
+		lblSolarRadsat.setBounds(110,2,70,25);
+		solarRadPane = new JPanel() { 
+			private static final long serialVersionUID = 1L;
+			
+			public void paintComponent(Graphics g) {
+				g.drawImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/dark-textures.jpg")), 0, 0, 1920, 1080, this);
+			}  
+		};
+		solarRadPane.setBounds(12,505,170,55);
+		solarRadPane.add(lblSolarRad);
+		solarRadPane.add(lblSolarRadval);
+		solarRadPane.add(lblSolarRadsat);
+		solarRadPane.setBorder(borderPane);
+		solarRadPane.setLayout(new BorderLayout(0, 0));  
+		contentPane.add(solarRadPane, BorderLayout.CENTER);
+		/*END PANEL SOLARRAD ========================================================================================*/
+		
 		/*PANEL CHART========================================================================================*/
 		chartPane = new JPanel() {
 			private static final long serialVersionUID = 1L;
@@ -1243,7 +1678,7 @@ public class Main {
 			}  
 		};
 		
-		chartPane.setBounds(12,316,998,272);
+		chartPane.setBounds(370,316,641,272);
         chartPane.setBorder(borderPane);
 		chartPane.setLayout(new BorderLayout(0, 0));  
 		contentPane.add(chartPane, BorderLayout.CENTER);
