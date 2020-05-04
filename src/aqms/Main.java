@@ -249,6 +249,7 @@ public class Main {
 	static String vAIN2 = "";
 	static String vAIN3 = "";
 	static int intervalCheckInternet = 0;
+	static int startingPwm = 0;
 	static int pumpInterval = 0;
 	static int zeroPM10 = 0;
 	static int zeroPM25 = 0;
@@ -823,6 +824,8 @@ public class Main {
 	private void timerPump() {
 		timerPump.schedule( new TimerTask() {
 			public void run() {
+				if(startingPwm > 3 && startingPwm < 6) btnPompa.doClick();
+				if(startingPwm <= 6) startingPwm++;
 				if(pumpInterval > 0) {
 					ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_last'");
 					try {
