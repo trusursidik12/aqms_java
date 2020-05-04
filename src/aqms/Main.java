@@ -16,7 +16,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
