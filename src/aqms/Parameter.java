@@ -182,6 +182,7 @@ public class Parameter {
 				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularO3.getText() + "',formula='" + txtFormulaO3.getText() + "',gain='" + txtGainO3.getText() + "',offset='" + txtOffsetO3.getText() + "' WHERE param_id='o3'");
 				 Main.execQuery("UPDATE params SET molecular_mass='" + txtMolecularNO2.getText() + "',formula='" + txtFormulaNO2.getText() + "',gain='" + txtGainNO2.getText() + "',offset='" + txtOffsetNO2.getText() + "' WHERE param_id='no2'");
 				 JOptionPane.showMessageDialog(null, "Data tersimpan");
+				 Main.initParam();
 			}
 		});
 		

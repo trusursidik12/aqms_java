@@ -8,8 +8,8 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/jfreechart-1.0.19/jfreechart-1.0.19/lib/jcommon-1.0.23.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/jfreechart-1.0.19/jfreechart-1.0.19/lib/jfreechart-1.0.19.jar"/>
-	<classpathentry kind="lib" path="C:/Users/dhove/Documents/TRUSUR/HSQLDB/lib/hsqldb.jar"/>
-	<classpathentry kind="lib" path="C:/Users/dhove/Documents/TRUSUR/HSQLDB/lib/sqltool.jar"/>
+	<classpathentry kind="lib" path="C:/HSQLDB/lib/hsqldb.jar"/>
+	<classpathentry kind="lib" path="C:/HSQLDB/lib/sqltool.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/Java_LJM_2017_12_04/Java_LJM_2017_12_04/jar/jna.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/Java_LJM_2017_12_04/Java_LJM_2017_12_04/jar/ljm.jar"/>
 	<classpathentry kind="lib" path="C:/Users/dhove/Downloads/jssc-2.8.0.jar"/>

@@ -236,6 +236,42 @@ public class Configuration {
 				Main.execQuery("UPDATE configurations SET content='" + txtIntervalPompa.getText() + "' WHERE data='pump_interval'");
 				Main.execQuery("UPDATE configurations SET content='" + txtKontrolerPompa.getText() + "' WHERE data='pump_control'");
 				JOptionPane.showMessageDialog(null, "Data tersimpan");
+				
+				Main.initParam();
+				
+				try {
+					Main.serialPM10.closePort();
+					Main.serialPM25.closePort();
+					Main.serialHC.closePort();
+					Main.serialPwm.closePort();
+					Main.isPM10 = false;
+					Main.isPM25 = false;
+					Main.isHC = false;
+					Main.isPwm = false;
+			    } catch (Exception ex) {}
+				
+				
+				try {
+					Main.serialPM10 = Main.OpenSerial(Main.portPM10, Main.baudPM10);
+					Main.isPM10 = true;
+				} catch (Exception ex) { }
+
+				try {
+					Main.serialPM25 = Main.OpenSerial(Main.portPM25, Main.baudPM25);
+					Main.isPM25 = true;
+				} catch (Exception ex) { }
+
+				try {
+					Main.serialHC = Main.OpenSerial(Main.portHC, Main.baudHC);
+					Main.isHC = true;
+				} catch (Exception ex) { }
+				
+				try {
+					Main.serialPwm = Main.OpenSerial(Main.portPwm, Main.baudPwm);
+					Main.isPwm = true;
+				} catch (Exception ex) { }
+				
+				Main.lblLocation.setText(Main.nama_stasiun);
 			}
 		});
 		txtDeviceId.setBounds(205, 5, 200, 20);

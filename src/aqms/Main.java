@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -24,7 +25,6 @@ import java.awt.Color;
 import java.awt.Font;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -32,7 +32,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.table.TableModel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -53,7 +52,6 @@ import java.text.SimpleDateFormat;
 import org.hsqldb.jdbc.JDBCDriver;
 import com.labjack.LJM;
 import com.labjack.LJMException;
-import com.mindfusion.common.DateTime;
 import com.sun.jna.ptr.DoubleByReference;
 import com.sun.jna.ptr.IntByReference;
 
@@ -62,8 +60,6 @@ import jssc.SerialPort;
 import jssc.SerialPortException;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -89,7 +85,7 @@ public class Main {
 	private JPanel rainRatePane;
 	private JPanel solarRadPane;
 	private JPanel chartPane;
-	private JLabel lblLocation;
+	static JLabel lblLocation;
 	private JLabel lblInternet;
 	private JLabel lblServer;
 	private JLabel lblTitle;
@@ -142,6 +138,7 @@ public class Main {
 	private JButton btnData;
 	private JButton btnPompa;
 	private JButton btnSatuan;
+	private JButton btnVoltages;
 	private Font btnFont = new Font("Arial Black", Font.BOLD, 13);
 	private Color red = Color.decode("#800000");
 	private Color green = Color.decode("#008000");
@@ -152,9 +149,12 @@ public class Main {
 	private Color lime = Color.decode("#00FF00");
 	private Color blue = Color.decode("#0000FF");
 	private LineBorder borderPane = new LineBorder(Color.DARK_GRAY, 1, true);
-	private Timer timer1 = new Timer();
+	private Timer timerClock = new Timer();
 	private Timer timerClearLog = new Timer();
 	private Timer timerPump = new Timer();
+	private Timer timerPM = new Timer();
+	private Timer timerLabjack = new Timer();
+	private Timer timerWeather = new Timer();
 	
 	static String id_stasiun = "";
 	static String nama_stasiun = "";
@@ -244,10 +244,16 @@ public class Main {
 	static String txtWindDir = "";
 	static String txtRainRate = "";
 	static String txtSolarRad = "";
+	static String vAIN0 = "";
+	static String vAIN1 = "";
+	static String vAIN2 = "";
+	static String vAIN3 = "";
 	static int intervalCheckInternet = 0;
 	static int pumpInterval = 0;
+	static int zeroPM10 = 0;
+	static int zeroPM25 = 0;
+	static int countBtnVoltages = 0;
 	static int pwmtrynum = 0;
-	static int serialWaiting = 0;
 	static String pumpSpeed = "0";
 	static String pumpSpeedCurr = "1";
 	static String idEndDataLogRange = "-1";
@@ -265,12 +271,11 @@ public class Main {
             return new DecimalFormat("#.######").format( valueRef.getValue() );
         }
         catch (LJMException le) {
-            le.printStackTrace();
+        	return "0";
         }
-		return "0";
 	}
 	
-	protected SerialPort OpenSerial(String Port,int BaudRate) {
+	static SerialPort OpenSerial(String Port,int BaudRate) {
 		SerialPort serialPort = new SerialPort(Port);
 	    try {
 	        serialPort.openPort();
@@ -295,6 +300,14 @@ public class Main {
 	    return "";
 	}
 	
+	static void startHSQLDB() {
+		try {
+			ProcessBuilder processBuilder = new ProcessBuilder();
+			processBuilder.command("cmd.exe", "/c", "cd C:\\HSQLDB && java -classpath lib/hsqldb.jar org.hsqldb.server.Server --database.0 file:hsqldb/aqms --dbname.0 aqms");
+			processBuilder.start();
+		}catch (Exception er) {}
+	}
+	
 	static ResultSet execQuery(String query) {
 		try {
 			Connection con = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/aqms","SA", "");
@@ -302,7 +315,8 @@ public class Main {
 		    ResultSet rs = statement.executeQuery(query);
 		    return rs;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Database not connect!");
+			startHSQLDB();
 		}
 		return null;
 	}
@@ -407,7 +421,6 @@ public class Main {
 			lblInternet.setForeground(red);
 			lblServer.setText("SERVER NOT CONNECTED");
 			lblServer.setForeground(red);
-			e.printStackTrace();
 		}
 	}
 	
@@ -428,28 +441,26 @@ public class Main {
 			isPM25 = true;
 		} catch (Exception e) { }
 
-
 		try {
 			serialHC = OpenSerial(portHC, baudHC);
 			isHC = true;
-		} catch (Exception e) { }
-
-		try {
-			serialPump = OpenSerial(portPump, baudPump);
-			isPump = true;
-			execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
-			execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
 		} catch (Exception e) { }
 		
 		try {
 			serialPwm = OpenSerial(portPwm, baudPwm);
 			isPwm = true;
 		} catch (Exception e) { }
-		timer1();
+
+//		try {
+//			serialPump = OpenSerial(portPump, baudPump);
+//			isPump = true;
+//			execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
+//			execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+//		} catch (Exception e) { }
 		timerPump();
 	}
 	
-	private void initParam() {
+	static String initParam() {
 		ResultSet rs = null;
 		try {
 			rs = execQuery("SELECT molecular_mass,formula,gain,offset FROM params WHERE param_id = 'so2'");
@@ -487,100 +498,99 @@ public class Main {
 			offsetHC = rs.getString("offset");
 			massHC = rs.getString("molecular_mass");
 			
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading parameters failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'sta_id'");
 			rs.next();
 			id_stasiun = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading sta_id failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'sta_nama'");
 			rs.next();
 			nama_stasiun = rs.getString("content");
-			lblLocation.setText(nama_stasiun);
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading sta_nama failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_pm10'");
 			rs.next();
 			portPM10 = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading com_10 failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_pm25'");
 			rs.next();
 			portPM25 = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading com_pm25 failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_hc'");
 			rs.next();
 			portHC = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading com_hc failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller'");
 			rs.next();
 			portPump = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading controller failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_pwm'");
 			rs.next();
 			portPwm = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading com_pwm failed!"); }
 
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'com_ws'");
 			rs.next();
 			portWS = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading com_ws failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_pm10'");
 			rs.next();
 			baudPM10 = Integer.parseInt(rs.getString("content"));
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading baud_pm10 failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_pm25'");
 			rs.next();
 			baudPM25 = Integer.parseInt(rs.getString("content"));
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading baud_pm25 failed!"); }
 
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_hc'");
 			rs.next();
 			baudHC = Integer.parseInt(rs.getString("content"));
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading baud_hc failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'controller_baud'");
 			rs.next();
 			baudPump = Integer.parseInt(rs.getString("content"));
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading controller_baud failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'baud_pwm'");
 			rs.next();
 			baudPwm = Integer.parseInt(rs.getString("content"));
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading baud_pwm failed!"); }
 		
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_interval'");
 			rs.next();
 			pumpInterval = Integer.parseInt(rs.getString("content")) * 60;
-		} catch (Exception e) { e.printStackTrace(); }
+		} catch (Exception e) { System.out.println("Reading pump_interval failed!"); }
 
 		try {
 			rs = execQuery("SELECT content FROM configurations WHERE data = 'pump_control'");
 			rs.next();
 			pumpSpeed = rs.getString("content");
-		} catch (Exception e) { e.printStackTrace(); }
-		
+		} catch (Exception e) { System.out.println("Reading pump_controll failed!"); }
+		return null;
 	}
 	
     private void initChart() {
@@ -762,21 +772,23 @@ public class Main {
 			lblSolarRadval.setText("0.0");
 		}
 	}
-
+	
 	public Main() {
 		initialize();
+		startHSQLDB();
 		initParam();
+		lblLocation.setText(nama_stasiun);
 		timerClock();
 		timerWeather();
 		timerClearLog();
 		initChart();
-//		initSerial();
-//		timer1();
-//		timerPump();
+		timerLabjack();
+		initSerial();
+		timerPM();
 	}
 	
 	private void timerClock() {
-		timerClearLog.schedule( new TimerTask() {
+		timerClock.schedule( new TimerTask() {
 			public void run() {
 				DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");  
 				LocalDateTime now = LocalDateTime.now();  
@@ -784,6 +796,7 @@ public class Main {
 				dtf = DateTimeFormatter.ofPattern("dd MMMM yyyy");  
 				now = LocalDateTime.now();  
 				lblDate.setText(dtf.format(now));
+				countBtnVoltages = 0;
 			}
 		}, 0,1000);
 	}
@@ -797,11 +810,9 @@ public class Main {
 	}
 	
 	private void timerWeather() {
-		timerClearLog.schedule( new TimerTask() {
+		timerWeather.schedule( new TimerTask() {
 			public void run() {
 				readVantagePro2();
-				if(serialWaiting < 52) serialWaiting++;
-				if(serialWaiting == 40) initSerial();
 				if(intervalCheckInternet > 30) intervalCheckInternet = 0;
 				if(intervalCheckInternet == 0) checkInternet();
 				intervalCheckInternet++;
@@ -810,7 +821,7 @@ public class Main {
 	}
 	
 	private void timerPump() {
-		timerClearLog.schedule( new TimerTask() {
+		timerPump.schedule( new TimerTask() {
 			public void run() {
 				if(pumpInterval > 0) {
 					ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_last'");
@@ -838,15 +849,18 @@ public class Main {
 		}, 0,1000);
 	}
 	
-	private void timer1() {
-		timer1.schedule( new TimerTask() {
-		    @SuppressWarnings("unchecked")
+	private void timerLabjack() {
+		timerLabjack.schedule( new TimerTask() {
 			public void run() {
-		    	try {
+				try {
 					String ain0 = readLabjack("AIN0");
 					String ain1 = readLabjack("AIN1");
 					String ain2 = readLabjack("AIN2");
 					String ain3 = readLabjack("AIN3");
+					vAIN0 = ain0;
+					vAIN1 = ain1;
+					vAIN2 = ain2;
+					vAIN3 = ain3;
 					
 					resultSO2 = expSO2.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainSO2).and("offset",offsetSO2).eval();
 					resultCO = expCO.with("AIN0",ain0).and("AIN1",ain1).and("AIN2",ain2).and("AIN3",ain3).and("gain",gainCO).and("offset",offsetCO).eval();
@@ -905,15 +919,33 @@ public class Main {
 					txtNO2 = "0";
 				}
 		    	
+				lblSO2val.setText(txtSO2);
+				lblCOval.setText(txtCO);
+				lblO3val.setText(txtO3);
+				lblNO2val.setText(txtNO2);
+				
+				initChart();
+		    }
+		}, 0,1000);
+	}
+	
+	private void timerPM() {
+		timerPM.schedule( new TimerTask() {
+		    @SuppressWarnings("unchecked")
+			public void run() {		    	
 		    	try {
 		    		if(isPM10) {
 						resultPM10 = serialPM10.readString();
 						txtPM10 = new DecimalFormat("#").format((Double.parseDouble(resultPM10.split(",")[0]) * 1000));
 						txtPM10flow = resultPM10.split(",")[1];
+						zeroPM10 = 0;
 		    		}
-		    	} catch (Exception e) {;
-		    		txtPM10 = "0";
-		    		txtPM10flow = "0.0";
+		    	} catch (Exception e) {
+		    		zeroPM10++;
+		    		if(zeroPM10 > 20) {
+			    		txtPM10 = "0";
+			    		txtPM10flow = "0.0";
+		    		}
 		    	}
 		    	
 		    	try {
@@ -921,12 +953,16 @@ public class Main {
 						resultPM25 = serialPM25.readString();
 						txtPM25 = new DecimalFormat("#").format((Double.parseDouble(resultPM25.split(",")[0]) * 1000));
 						txtPM25flow = resultPM25.split(",")[1];
+						zeroPM25 = 0;
 		    		}
 		    	} catch (Exception e) {
-		    		txtPM25 = "0";
-		    		txtPM25flow = "0.0";
+		    		zeroPM25++;
+		    		if(zeroPM25 > 20) {
+			    		txtPM25 = "0";
+			    		txtPM25flow = "0.0";
+		    		}
 		    	}
-
+		    	
 		    	try {
 		    		if(isHC) {
 						resultHC = serialHC.readString().trim();
@@ -954,12 +990,17 @@ public class Main {
 		    	lblPM10flow.setText(txtPM10flow + " l/mnt");
 		    	lblPM25val.setText(txtPM25 + " ug/m3");
 		    	lblPM25flow.setText(txtPM25flow + " l/mnt");
-				lblSO2val.setText(txtSO2);
-				lblCOval.setText(txtCO);
-				lblO3val.setText(txtO3);
-				lblNO2val.setText(txtNO2);
 				lblHCval.setText(txtHC);
 
+				if(txtPM10 == null) txtPM10 = "0";
+				if(txtPM25 == null) txtPM25 = "0";
+				if(txtPM10flow == null) txtPM10flow = "0";
+				if(txtPM25flow == null) txtPM25flow = "0";
+				if(ugSO2 == null) ugSO2 = 0.0;
+				if(ugCO == null) ugCO = 0.0;
+				if(ugO3 == null) ugO3 = 0.0;
+				if(ugNO2 == null) ugNO2 = 0.0;
+				if(ugHC == null) ugHC = 0.0;
 				execQuery("INSERT INTO data_log (waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_avg) VALUES (NOW(),'" + txtPM10 + "','" + txtPM25 + "','" + txtPM10flow + "','" + txtPM25flow + "','" + ugSO2.toString() + "','" + ugCO.toString() + "','" + ugO3.toString() + "','" + ugNO2.toString() + "','" + ugHC.toString() + "','0')");
 				
 				ResultSet dataLog = getDataLogRange(30);
@@ -1023,8 +1064,6 @@ public class Main {
 						}
 					}
 				} catch (Exception e) { }
-				
-				initChart();
 				
 		    }
 		}, 0,1000);
@@ -1137,24 +1176,25 @@ public class Main {
 		btnData.setBackground(btnBgColor);
 		btnData.setBounds(351,15,115,35);
 		
-		btnPompa = new JButton("Pompa 1");
+		btnPompa = new JButton("POMPA 1");
 		btnPompa.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_state'");
 				try {
 					pump.next();
-					if(pump.getString("content").contentEquals("0")) {
-						execQuery("UPDATE configurations SET content = 1 WHERE data = 'pump_state'");
-						execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
-						btnPompa.setText("POMPA 2");
-						btnPompa.setBackground(blue);
-						serialPump.writeBytes("j".getBytes());
-					} else {
+					if(pump.getString("content").contentEquals("1")) {
 						execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
 						execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
 						btnPompa.setText("POMPA 1");
 						btnPompa.setBackground(green);
-						serialPump.writeBytes("i".getBytes());
+						serialPwm.writeBytes(pumpSpeed.getBytes());
+					} else {
+						execQuery("UPDATE configurations SET content = 1 WHERE data = 'pump_state'");
+						execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+						btnPompa.setText("POMPA 2");
+						btnPompa.setBackground(blue);
+						Integer npumpSpeed = Integer.parseInt(pumpSpeed) + 100;
+						serialPwm.writeBytes(npumpSpeed.toString().getBytes());
 					}
 				} catch (Exception e) { }
 			}
@@ -1255,10 +1295,10 @@ public class Main {
 		
 		/*PANEL PM25 ========================================================================================*/
 		lblPM25 = new JLabel();
-		lblPM25.setText("PM25");
+		lblPM25.setText("PM2.5");
 		lblPM25.setFont(new Font("Arial", Font.BOLD, 18));
 		lblPM25.setForeground(white);
-		lblPM25.setBounds(5,11,50,25);
+		lblPM25.setBounds(5,11,80,25);
 		lblPM25val = new JLabel();
 		lblPM25val.setText("0 ug/m3");
 		lblPM25val.setFont(new Font("Arial", Font.BOLD, 28));
@@ -1457,10 +1497,10 @@ public class Main {
 		lblBarval.setForeground(lime);
 		lblBarval.setBounds(60,25,150,35);
 		lblBarsat = new JLabel();
-		lblBarsat.setText("(MBar)");
+		lblBarsat.setText("( MBar )");
 		lblBarsat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblBarsat.setForeground(white);
-		lblBarsat.setBounds(110,2,70,25);
+		lblBarsat.setBounds(105,2,70,25);
 		barPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1489,10 +1529,10 @@ public class Main {
 		lblTempval.setForeground(lime);
 		lblTempval.setBounds(60,25,150,35);
 		lblTempsat = new JLabel();
-		lblTempsat.setText("(Celcius)");
+		lblTempsat.setText("( °C )");
 		lblTempsat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblTempsat.setForeground(white);
-		lblTempsat.setBounds(110,2,70,25);
+		lblTempsat.setBounds(105,2,70,25);
 		tempPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1521,10 +1561,10 @@ public class Main {
 		lblHumidityval.setForeground(lime);
 		lblHumidityval.setBounds(60,25,150,35);
 		lblHumiditysat = new JLabel();
-		lblHumiditysat.setText("(%)");
+		lblHumiditysat.setText("( % )");
 		lblHumiditysat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblHumiditysat.setForeground(white);
-		lblHumiditysat.setBounds(110,2,70,25);
+		lblHumiditysat.setBounds(105,2,70,25);
 		humidityPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1553,10 +1593,10 @@ public class Main {
 		lblRainRateval.setForeground(lime);
 		lblRainRateval.setBounds(60,25,150,35);
 		lblRainRatesat = new JLabel();
-		lblRainRatesat.setText("(mm/jam)");
+		lblRainRatesat.setText("( mm/jam )");
 		lblRainRatesat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblRainRatesat.setForeground(white);
-		lblRainRatesat.setBounds(110,2,70,25);
+		lblRainRatesat.setBounds(105,2,70,25);
 		rainRatePane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1585,10 +1625,10 @@ public class Main {
 		lblWindspeedval.setForeground(lime);
 		lblWindspeedval.setBounds(60,25,150,35);
 		lblWindspeedsat = new JLabel();
-		lblWindspeedsat.setText("(Km/jam)");
+		lblWindspeedsat.setText("( Km/jam )");
 		lblWindspeedsat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblWindspeedsat.setForeground(white);
-		lblWindspeedsat.setBounds(110,2,70,25);
+		lblWindspeedsat.setBounds(105,2,70,25);
 		windspeedPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1617,10 +1657,10 @@ public class Main {
 		lblWindDirval.setForeground(lime);
 		lblWindDirval.setBounds(60,25,150,35);
 		lblWindDirsat = new JLabel();
-		lblWindDirsat.setText("(°)");
+		lblWindDirsat.setText("( ° )");
 		lblWindDirsat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblWindDirsat.setForeground(white);
-		lblWindDirsat.setBounds(110,2,70,25);
+		lblWindDirsat.setBounds(105,2,70,25);
 		windDirPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1649,10 +1689,10 @@ public class Main {
 		lblSolarRadval.setForeground(lime);
 		lblSolarRadval.setBounds(60,25,150,35);
 		lblSolarRadsat = new JLabel();
-		lblSolarRadsat.setText("(watt/m2)");
+		lblSolarRadsat.setText("( watt/m2 )");
 		lblSolarRadsat.setFont(new Font("Arial", Font.BOLD, 12));
 		lblSolarRadsat.setForeground(white);
-		lblSolarRadsat.setBounds(110,2,70,25);
+		lblSolarRadsat.setBounds(105,2,70,25);
 		solarRadPane = new JPanel() { 
 			private static final long serialVersionUID = 1L;
 			
@@ -1668,6 +1708,25 @@ public class Main {
 		solarRadPane.setLayout(new BorderLayout(0, 0));  
 		contentPane.add(solarRadPane, BorderLayout.CENTER);
 		/*END PANEL SOLARRAD ========================================================================================*/
+		
+		/*BUTTON VOLTAGES ========================================================================================*/
+		btnVoltages = new JButton("");
+		btnVoltages.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				countBtnVoltages++;
+				if(countBtnVoltages > 2) {
+					new Voltages();
+					countBtnVoltages = 0;
+				}
+			}
+		});
+		btnVoltages.setOpaque(false);
+		btnVoltages.setContentAreaFilled(false);
+		btnVoltages.setBorderPainted(false);
+		btnVoltages.setBounds(190,505,170,55);
+		contentPane.add(btnVoltages, BorderLayout.CENTER);
+		/*END BUTTON VOLTAGES ========================================================================================*/
+		
 		
 		/*PANEL CHART========================================================================================*/
 		chartPane = new JPanel() {
