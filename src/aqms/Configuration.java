@@ -11,6 +11,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+
+import jssc.SerialPort;
+import jssc.SerialPortException;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -40,9 +44,13 @@ public class Configuration {
 	static JTextField txtBaudPwm;
 	static JTextField txtPortWs;
 	static JTextField txtBaudWs;
-	static String valPortValve;
-	static String valBaudValve;
+	static JTextField txtPortValve;
+	static JTextField txtBaudValve;
 	static JButton btnSimpan;
+	static JButton btnSampling;
+	static JButton btnZero;
+	static JButton btnSpan;
+	static SerialPort serialValve;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -82,16 +90,26 @@ public class Configuration {
 				if(conf.getString("data").contentEquals("baud_pwm")) txtBaudPwm.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("com_ws")) txtPortWs.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("baud_ws")) txtBaudWs.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("com_valve")) txtPortValve.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("baud_valve")) txtBaudValve.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("pump_interval")) txtIntervalPompa.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("pump_control")) txtKontrolerPompa.setText(conf.getString("content"));
 			}
 		} catch (Exception e) {e.printStackTrace();}
+		
+		try {
+			serialValve.closePort();
+	    } catch (Exception ex) {}
+		
+		try {
+			serialValve = Main.OpenSerial(Main.portPM10, Main.baudPM10);
+		} catch (Exception ex) { }
 	}
 
 	private void initialize() {
 		frame = new JFrame("KONFIGURASI");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/logotrusur.png")));
-		frame.setBounds(100,100,650,400);
+		frame.setBounds(100,100,650,450);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
@@ -130,6 +148,8 @@ public class Configuration {
 		JLabel lblBaudPwm = new JLabel("Baud PWM");
 		JLabel lblPortWs = new JLabel("Port WS");
 		JLabel lblBaudWs = new JLabel("Baud WS");
+		JLabel lblPortValve = new JLabel("Port Valve");
+		JLabel lblBaudValve = new JLabel("Baud Valve");
 		lblPortPM10.setBounds(450, 5, 70, 20);
 		lblBaudPM10.setBounds(450, 30, 70, 20);
 		lblPortPM25.setBounds(450, 55, 70, 20);
@@ -142,6 +162,8 @@ public class Configuration {
 		lblBaudPwm.setBounds(450, 230, 70, 20);
 		lblPortWs.setBounds(450, 255, 70, 20);
 		lblBaudWs.setBounds(450, 280, 70, 20);
+		lblPortValve.setBounds(450, 305, 70, 20);
+		lblBaudValve.setBounds(450, 330, 70, 20);
 		
 		txtDeviceId = new JTextField(20);
 		txtStasiunId = new JTextField(100);
@@ -165,6 +187,8 @@ public class Configuration {
 		txtBaudPwm = new JTextField(10);
 		txtPortWs = new JTextField(20);
 		txtBaudWs = new JTextField(10);
+		txtPortValve = new JTextField(20);
+		txtBaudValve = new JTextField(10);
 		btnSimpan = new JButton("Simpan");
 		btnSimpan.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -188,6 +212,8 @@ public class Configuration {
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudPwm.getText() + "' WHERE data='baud_pwm'");
 				Main.execQuery("UPDATE configurations SET content='" + txtPortWs.getText() + "' WHERE data='com_ws'");
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudWs.getText() + "' WHERE data='baud_ws'");
+				Main.execQuery("UPDATE configurations SET content='" + txtPortValve.getText() + "' WHERE data='com_valve'");
+				Main.execQuery("UPDATE configurations SET content='" + txtBaudValve.getText() + "' WHERE data='baud_valve'");
 				Main.execQuery("UPDATE configurations SET content='" + txtIntervalPompa.getText() + "' WHERE data='pump_interval'");
 				Main.execQuery("UPDATE configurations SET content='" + txtKontrolerPompa.getText() + "' WHERE data='pump_control'");
 				JOptionPane.showMessageDialog(null, "Data tersimpan");
@@ -195,6 +221,7 @@ public class Configuration {
 				Main.initParam();
 				
 				try {
+					serialValve.closePort();
 					Main.serialPM10.closePort();
 					Main.serialPM25.closePort();
 					Main.serialHC.closePort();
@@ -226,9 +253,41 @@ public class Configuration {
 					Main.isPwm = true;
 				} catch (Exception ex) { }
 				
+				try {
+					serialValve = Main.OpenSerial(Main.portPM10, Main.baudPM10);
+				} catch (Exception ex) { }
+				
 				Main.lblLocation.setText(Main.nama_stasiun);
 			}
 		});
+		
+		btnSampling = new JButton("Sampling");
+		btnSampling.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					serialValve.writeBytes("i".getBytes());
+				} catch (SerialPortException e1) {}
+			}
+		});
+		
+		btnZero = new JButton("Zero");
+		btnZero.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					serialValve.writeBytes("j".getBytes());
+				} catch (SerialPortException e1) {}
+			}
+		});
+		
+		btnSpan = new JButton("Span");
+		btnSpan.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					serialValve.writeBytes("k".getBytes());
+				} catch (SerialPortException e1) {}
+			}
+		});
+		
 		txtDeviceId.setFont(new Font("Arial", Font.BOLD, 14));
 		txtStasiunId.setFont(new Font("Arial", Font.BOLD, 14));
 		txtNamaStasiun.setFont(new Font("Arial", Font.BOLD, 14));
@@ -251,6 +310,8 @@ public class Configuration {
 		txtBaudPwm.setFont(new Font("Arial", Font.BOLD, 14));
 		txtPortWs.setFont(new Font("Arial", Font.BOLD, 14));
 		txtBaudWs.setFont(new Font("Arial", Font.BOLD, 14));
+		txtPortValve.setFont(new Font("Arial", Font.BOLD, 14));
+		txtBaudValve.setFont(new Font("Arial", Font.BOLD, 14));
 		txtDeviceId.setBounds(205, 5, 200, 20);
 		txtStasiunId.setBounds(205, 30, 200, 20);
 		txtNamaStasiun.setBounds(205, 55, 200, 20);
@@ -273,7 +334,12 @@ public class Configuration {
 		txtBaudPwm.setBounds(520, 230, 100, 20);
 		txtPortWs.setBounds(520, 255, 100, 20);
 		txtBaudWs.setBounds(520, 280, 100, 20);
-		btnSimpan.setBounds(450, 305, 100, 50);
+		txtPortValve.setBounds(520, 305, 100, 20);
+		txtBaudValve.setBounds(520, 330, 100, 20);
+		btnSimpan.setBounds(450, 355, 100, 50);
+		btnSampling.setBounds(35, 300, 100, 50);
+		btnZero.setBounds(150, 300, 100, 50);
+		btnSpan.setBounds(265, 300, 100, 50);
 		
 		contentPane.add(lblDeviceId);
 		contentPane.add(lblStasiunId);
@@ -307,6 +373,8 @@ public class Configuration {
 		contentPane.add(lblBaudPwm);
 		contentPane.add(lblPortWs);
 		contentPane.add(lblBaudWs);
+		contentPane.add(lblPortValve);
+		contentPane.add(lblBaudValve);
 		contentPane.add(txtPortPM10);
 		contentPane.add(txtBaudPM10);
 		contentPane.add(txtPortPM25);
@@ -319,7 +387,12 @@ public class Configuration {
 		contentPane.add(txtBaudPwm);
 		contentPane.add(txtPortWs);
 		contentPane.add(txtBaudWs);
+		contentPane.add(txtPortValve);
+		contentPane.add(txtBaudValve);
 		contentPane.add(btnSimpan);
+		contentPane.add(btnSampling);
+		contentPane.add(btnZero);
+		contentPane.add(btnSpan);
 		
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));
 		contentPane.setLayout(new BorderLayout(0, 0));

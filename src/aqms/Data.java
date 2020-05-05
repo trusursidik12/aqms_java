@@ -116,7 +116,7 @@ public class Data implements PropertyChangeListener {
 		JTable table = new JTable(); 
 
 		Object[] columnNames = { "Waktu", "PM10", "PM25", "SO2", "CO", "O3", "NO2", "HC", "Tekanan", "Suhu", "Kelembaban", "Curah Hujan", "Kec. angin", "Arah Angin", "Solar Radiasi" }; 
-		Object[] data = new Object[8];
+		Object[] data = new Object[15];
         model.setColumnIdentifiers(columnNames);
         table.setModel(model);
 		
