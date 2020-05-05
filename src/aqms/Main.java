@@ -596,11 +596,9 @@ public class Main {
 	}
 	
     private void initChart() {
-        XYDataset dataset = createDataset();
-        JFreeChart chart = createChart(dataset);
+        JFreeChart chart = createChart(createDataset());
+        chart.getLegend().setItemFont(new Font("SansSerif", Font.BOLD, 14));
         ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setBackground(Color.white);
-        chartPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 1));
         chartPane.removeAll();
         chartPane.add(chartPanel);
     }
