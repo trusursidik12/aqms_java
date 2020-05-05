@@ -40,12 +40,8 @@ public class Configuration {
 	static JTextField txtBaudPwm;
 	static JTextField txtPortWs;
 	static JTextField txtBaudWs;
-	static String valPortHC;
-	static String valBaudHC;
-	static String valPortPwm;
-	static String valBaudPwm;
-	static String valPortWs;
-	static String valBaudWs;
+	static String valPortValve;
+	static String valBaudValve;
 	static JButton btnSimpan;
 
 	public static void main(String[] args) {
@@ -80,30 +76,12 @@ public class Configuration {
 				if(conf.getString("data").contentEquals("baud_pm25")) txtBaudPM25.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("controller")) txtPortPump.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("controller_baud")) txtBaudPump.setText(conf.getString("content"));
-				if(conf.getString("data").contentEquals("com_hc")) {
-					txtPortHC.setText(conf.getString("content"));
-					valPortHC = conf.getString("content");
-				}
-				if(conf.getString("data").contentEquals("baud_hc")) {
-					txtBaudHC.setText(conf.getString("content"));
-					valBaudHC = conf.getString("content");
-				}
-				if(conf.getString("data").contentEquals("com_pwm")) {
-					txtPortPwm.setText(conf.getString("content"));
-					valPortPwm = conf.getString("content");
-				}
-				if(conf.getString("data").contentEquals("baud_pwm")) {
-					txtBaudPwm.setText(conf.getString("content"));
-					valBaudPwm = conf.getString("content");
-				}
-				if(conf.getString("data").contentEquals("com_ws")) {
-					txtPortWs.setText(conf.getString("content"));
-					valPortWs = conf.getString("content");
-				}
-				if(conf.getString("data").contentEquals("baud_ws")) {
-					txtBaudWs.setText(conf.getString("content"));
-					valBaudWs = conf.getString("content");
-				}
+				if(conf.getString("data").contentEquals("com_hc")) txtPortHC.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("baud_hc")) txtBaudHC.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("com_pwm")) txtPortPwm.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("baud_pwm")) txtBaudPwm.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("com_ws")) txtPortWs.setText(conf.getString("content"));
+				if(conf.getString("data").contentEquals("baud_ws")) txtBaudWs.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("pump_interval")) txtIntervalPompa.setText(conf.getString("content"));
 				if(conf.getString("data").contentEquals("pump_control")) txtKontrolerPompa.setText(conf.getString("content"));
 			}
@@ -204,36 +182,12 @@ public class Configuration {
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudPM25.getText() + "' WHERE data='baud_pm25'");
 				Main.execQuery("UPDATE configurations SET content='" + txtPortPump.getText() + "' WHERE data='controller'");
 				Main.execQuery("UPDATE configurations SET content='" + txtBaudPump.getText() + "' WHERE data='controller_baud'");
-				if(valPortHC == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_hc','" + txtPortHC.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtPortHC.getText() + "' WHERE data='com_hc'");
-				}
-				if(valBaudHC == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_hc','" + txtBaudHC.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtBaudHC.getText() + "' WHERE data='baud_hc'");
-				}
-				if(valPortPwm == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_pwm','" + txtPortPwm.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtPortPwm.getText() + "' WHERE data='com_pwm'");
-				}
-				if(valBaudPwm == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_pwm','" + txtBaudPwm.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtBaudPwm.getText() + "' WHERE data='baud_pwm'");
-				}
-				if(valPortWs == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('com_ws','" + txtPortWs.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtPortWs.getText() + "' WHERE data='com_ws'");
-				}
-				if(valBaudWs == null) {
-					Main.execQuery("INSERT INTO configurations (data,content) VALUES ('baud_ws','" + txtBaudWs.getText() + "')");
-				} else {
-					Main.execQuery("UPDATE configurations SET content='" + txtBaudWs.getText() + "' WHERE data='baud_ws'");
-				}
+				Main.execQuery("UPDATE configurations SET content='" + txtPortHC.getText() + "' WHERE data='com_hc'");
+				Main.execQuery("UPDATE configurations SET content='" + txtBaudHC.getText() + "' WHERE data='baud_hc'");
+				Main.execQuery("UPDATE configurations SET content='" + txtPortPwm.getText() + "' WHERE data='com_pwm'");
+				Main.execQuery("UPDATE configurations SET content='" + txtBaudPwm.getText() + "' WHERE data='baud_pwm'");
+				Main.execQuery("UPDATE configurations SET content='" + txtPortWs.getText() + "' WHERE data='com_ws'");
+				Main.execQuery("UPDATE configurations SET content='" + txtBaudWs.getText() + "' WHERE data='baud_ws'");
 				Main.execQuery("UPDATE configurations SET content='" + txtIntervalPompa.getText() + "' WHERE data='pump_interval'");
 				Main.execQuery("UPDATE configurations SET content='" + txtKontrolerPompa.getText() + "' WHERE data='pump_control'");
 				JOptionPane.showMessageDialog(null, "Data tersimpan");

@@ -329,12 +329,11 @@ public class Main {
 		String id_start = "-1";
 		String lasttime;
 		int mm = Integer.parseInt(DateTimeFormatter.ofPattern("mm").format(LocalDateTime.now()).toString());
-		if(mm%minutes == 0 && lastPutData != DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString()) {
+		if(mm%minutes == 0 && !lastPutData.contentEquals(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString())) {
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");  
 			LocalDateTime now = LocalDateTime.now().minusMinutes(minutes);
 			lasttime = dtf.format(now);
-			
-//			ResultSet rs = execQuery("SELECT id FROM data_log WHERE waktu LIKE '" + lasttime + ":%' AND is_avg='0' ORDER BY waktu LIMIT 1");
+
 			ResultSet rs = execQuery("SELECT id FROM data_log WHERE waktu >= '" + lasttime + ":00' AND is_avg='0' ORDER BY waktu LIMIT 1");
 			try {
 				if(rs.next()) id_start = rs.getString("id");
@@ -1020,8 +1019,8 @@ public class Main {
 				if(ugO3 == null) ugO3 = 0.0;
 				if(ugNO2 == null) ugNO2 = 0.0;
 				if(ugHC == null) ugHC = 0.0;
-				execQuery("INSERT INTO data_log (waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_avg) VALUES (NOW(),'" + txtPM10 + "','" + txtPM25 + "','" + txtPM10flow + "','" + txtPM25flow + "','" + ugSO2.toString() + "','" + ugCO.toString() + "','" + ugO3.toString() + "','" + ugNO2.toString() + "','" + ugHC.toString() + "','0')");
-				
+				execQuery("INSERT INTO data_log (waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,pressure,temp,humidity,rainrate,windspeed,winddir,solarrad,is_avg) VALUES (NOW(),'" + txtPM10 + "','" + txtPM25 + "','" + txtPM10flow + "','" + txtPM25flow + "','" + ugSO2.toString() + "','" + ugCO.toString() + "','" + ugO3.toString() + "','" + ugNO2.toString() + "','" + ugHC.toString() + "','" + txtBarometer + "','" + txtTemp + "','" + txtHumidity + "','" + txtRainRate + "','" + txtWindspeed + "','" + txtWindDir + "','" + txtSolarRad + "','0')");
+								
 				ResultSet dataLog = getDataLogRange(30);
 				try {
 					double totPM10 = 0,totPM25 = 0,totPM10flow = 0,totPM25flow = 0,totSO2 = 0,totCO = 0,totO3 = 0,totNO2 = 0,totHC = 0;
@@ -1039,6 +1038,7 @@ public class Main {
 						totNO2 += dataLog.getDouble("no2");
 						totHC += dataLog.getDouble("hc");
 					}
+					System.out.println("numrow = " + numrow);
 					if(numrow > 0) {
 						avgPM10 = totPM10 / numrow;
 						avgPM25 = totPM25 / numrow;
@@ -1053,7 +1053,7 @@ public class Main {
 						execQuery("UPDATE data_log SET is_avg='1',avg_at=NOW() WHERE id BETWEEN '" + idStartDataLogRange + "' AND '" + idEndDataLogRange + "'");
 						idStartDataLogRange = "-1";
 						idEndDataLogRange = "-1";
-						execQuery("INSERT INTO data (id_stasiun,waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_sent,is_sent2) VALUES ('" + id_stasiun + "',NOW(),'" + Math.round(avgPM10) + "','" + Math.round(avgPM25) + "','" + Math.round(avgPM10flow) + "','" + Math.round(avgPM25flow) + "','" + Math.round(avgSO2) + "','" + Math.round(avgCO) + "','" + Math.round(avgO3) + "','" + Math.round(avgNO2) + "','" + Math.round(avgHC) + "','0','0')");
+						execQuery("INSERT INTO data (id_stasiun,waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,pressure,temp,humidity,rainrate,windspeed,winddir,solarrad,is_sent,is_sent2) VALUES ('" + id_stasiun + "',NOW(),'" + Math.round(avgPM10) + "','" + Math.round(avgPM25) + "','" + Math.round(avgPM10flow) + "','" + Math.round(avgPM25flow) + "','" + Math.round(avgSO2) + "','" + Math.round(avgCO) + "','" + Math.round(avgO3) + "','" + Math.round(avgNO2) + "','" + Math.round(avgHC) + "','" + txtBarometer + "','" + txtTemp + "','" + txtHumidity + "','" + txtRainRate + "','" + txtWindspeed + "','" + txtWindDir + "','" + txtSolarRad + "','0','0')");
 						lastPutData = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString();
 					}
 				} catch (Exception e) {}

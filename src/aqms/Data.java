@@ -115,7 +115,7 @@ public class Data implements PropertyChangeListener {
 		JScrollPane tableScrollPane;
 		JTable table = new JTable(); 
 
-		Object[] columnNames = { "Waktu", "PM10", "PM25", "SO2", "CO", "O3", "NO2", "HC" }; 
+		Object[] columnNames = { "Waktu", "PM10", "PM25", "SO2", "CO", "O3", "NO2", "HC", "Tekanan", "Suhu", "Kelembaban", "Curah Hujan", "Kec. angin", "Arah Angin", "Solar Radiasi" }; 
 		Object[] data = new Object[8];
         model.setColumnIdentifiers(columnNames);
         table.setModel(model);
@@ -174,6 +174,13 @@ public class Data implements PropertyChangeListener {
 						data[5] = Double.toString(aqm_data.getDouble("o3"));
 						data[6] = Double.toString(aqm_data.getDouble("no2"));
 						data[7] = Double.toString(aqm_data.getDouble("hc"));
+						data[8] = Double.toString(aqm_data.getDouble("pressure"));
+						data[9] = Double.toString(aqm_data.getDouble("temp"));
+						data[10] = Double.toString(aqm_data.getDouble("humidity"));
+						data[11] = Double.toString(aqm_data.getDouble("rainrate"));
+						data[12] = Double.toString(aqm_data.getDouble("windspeed"));
+						data[13] = Double.toString(aqm_data.getDouble("winddir"));
+						data[14] = Double.toString(aqm_data.getDouble("solarrad"));
 						model.addRow(data);
 					}
 				} catch (Exception e) {}
@@ -197,6 +204,13 @@ public class Data implements PropertyChangeListener {
 				data[5] = Double.toString(aqm_data.getDouble("o3"));
 				data[6] = Double.toString(aqm_data.getDouble("no2"));
 				data[7] = Double.toString(aqm_data.getDouble("hc"));
+				data[8] = Double.toString(aqm_data.getDouble("pressure"));
+				data[9] = Double.toString(aqm_data.getDouble("temp"));
+				data[10] = Double.toString(aqm_data.getDouble("humidity"));
+				data[11] = Double.toString(aqm_data.getDouble("rainrate"));
+				data[12] = Double.toString(aqm_data.getDouble("windspeed"));
+				data[13] = Double.toString(aqm_data.getDouble("winddir"));
+				data[14] = Double.toString(aqm_data.getDouble("solarrad"));
 				model.addRow(data);
 			}
 		} catch (Exception e) {}
