@@ -6,6 +6,7 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
@@ -259,6 +260,7 @@ public class Main {
 	static String idEndDataLogRange = "-1";
 	static String idStartDataLogRange = "-1";
 	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	static String startAt = "";
 	
 	protected String readLabjack(String name) {
 		try {
@@ -623,7 +625,7 @@ public class Main {
         TimeSeries serNO2 = new TimeSeries("NO2");
         TimeSeries serHC = new TimeSeries("HC");
         
-        ResultSet datalog = execQuery("SELECT * FROM data_log ORDER BY waktu DESC LIMIT 20");
+        ResultSet datalog = execQuery("SELECT * FROM data_log WHERE waktu >= '" + startAt + "' ORDER BY waktu DESC LIMIT 20");
         try {
         	while(datalog.next()) {
         		waktu = datalog.getString("waktu");
@@ -663,10 +665,23 @@ public class Main {
 	private JFreeChart createChart(XYDataset dataset) {
 		JFreeChart chart = ChartFactory.createTimeSeriesChart("","Time","ug/m3",dataset);
         XYPlot plot = chart.getXYPlot();
+        plot.getDomainAxis().setTickLabelFont(new Font("SansSerif", Font.BOLD, 14));
+        plot.getRangeAxis().setTickLabelFont(new Font("SansSerif", Font.BOLD, 14));
+        plot.getDomainAxis().setLabelFont(new Font("SansSerif", Font.BOLD, 14));
+        plot.getRangeAxis().setLabelFont(new Font("SansSerif", Font.BOLD, 14));
 
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesPaint(0, Color.RED);
-        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(){
+			private static final long serialVersionUID = 1L;
+			Stroke soild = new BasicStroke(3.0f);
+            @Override
+            public Stroke getItemStroke(int row, int column) {
+            	return soild;
+            }
+        };
+
+        renderer.setBaseShapesVisible(true);
+        renderer.setBaseShapesFilled(true);
+        renderer.setBaseStroke(new BasicStroke(3));
 
         plot.setRenderer(renderer);
         plot.setBackgroundPaint(Color.white);
@@ -676,7 +691,6 @@ public class Main {
         plot.setDomainGridlinePaint(Color.BLACK);
 
         chart.getLegend().setFrame(BlockBorder.NONE);
-        chart.setTitle(new TextTitle("",new Font("Serif", java.awt.Font.BOLD, 18)));
         return chart;
     }
 	
@@ -774,6 +788,7 @@ public class Main {
 	}
 	
 	public Main() {
+		startAt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(LocalDateTime.now());
 		initialize();
 		startHSQLDB();
 		initParam();

@@ -186,6 +186,23 @@ public class Parameter {
 			}
 		});
 		
+		txtMolecularSO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtFormulaSO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtGainSO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtOffsetSO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtMolecularCO.setFont(new Font("Arial", Font.BOLD, 12));
+		txtFormulaCO.setFont(new Font("Arial", Font.BOLD, 12));
+		txtGainCO.setFont(new Font("Arial", Font.BOLD, 12));
+		txtOffsetCO.setFont(new Font("Arial", Font.BOLD, 12));
+		txtMolecularO3.setFont(new Font("Arial", Font.BOLD, 12));
+		txtFormulaO3.setFont(new Font("Arial", Font.BOLD, 12));
+		txtGainO3.setFont(new Font("Arial", Font.BOLD, 12));
+		txtOffsetO3.setFont(new Font("Arial", Font.BOLD, 12));
+		txtMolecularNO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtFormulaNO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtGainNO2.setFont(new Font("Arial", Font.BOLD, 12));
+		txtOffsetNO2.setFont(new Font("Arial", Font.BOLD, 12));
+		
 		btnSimpan.setBounds(100, 390, 170, 50);
 		
 		contentPane.add(lblSO2);

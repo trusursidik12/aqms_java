@@ -86,36 +86,44 @@ public class Voltages {
 		lblSmallest.setFont(new Font("Arial", Font.BOLD, 14));
 		lblSmallest.setBounds(200, 5, 100, 30);	
 		
-		JLabel lblAIN0 = new JLabel("AIN0");
+		JLabel lblAIN0 = new JLabel("O3");
 		lblAIN0.setFont(new Font("Arial", Font.BOLD, 14));
 		lblAIN0.setBounds(5, 40, 50, 30);	
 		txtAIN0 = new JTextField(20);
+		txtAIN0.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN0.setBounds(50, 40, 100, 25);	
 		txtAIN0Less = new JTextField(20);
+		txtAIN0Less.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN0Less.setBounds(180, 40, 100, 25);
 
-		JLabel lblAIN1 = new JLabel("AIN1");
+		JLabel lblAIN1 = new JLabel("NO2");
 		lblAIN1.setFont(new Font("Arial", Font.BOLD, 14));
 		lblAIN1.setBounds(5, 80, 50, 30);	
 		txtAIN1 = new JTextField(20);
+		txtAIN1.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN1.setBounds(50, 80, 100, 25);	
 		txtAIN1Less = new JTextField(20);
+		txtAIN1Less.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN1Less.setBounds(180, 80, 100, 25);
 		
-		JLabel lblAIN2 = new JLabel("AIN2");
+		JLabel lblAIN2 = new JLabel("CO");
 		lblAIN2.setFont(new Font("Arial", Font.BOLD, 14));
 		lblAIN2.setBounds(5, 120, 50, 30);	
 		txtAIN2 = new JTextField(20);
+		txtAIN2.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN2.setBounds(50, 120, 100, 25);	
 		txtAIN2Less = new JTextField(20);
+		txtAIN2Less.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN2Less.setBounds(180, 120, 100, 25);
 		
-		JLabel lblAIN3 = new JLabel("AIN3");
+		JLabel lblAIN3 = new JLabel("SO2");
 		lblAIN3.setFont(new Font("Arial", Font.BOLD, 14));
 		lblAIN3.setBounds(5, 160, 50, 30);	
 		txtAIN3 = new JTextField(20);
+		txtAIN3.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN3.setBounds(50, 160, 100, 25);	
 		txtAIN3Less = new JTextField(20);
+		txtAIN3Less.setFont(new Font("Arial", Font.BOLD, 14));
 		txtAIN3Less.setBounds(180, 160, 100, 25);
 		
 		contentPane.add(lblCurrent);

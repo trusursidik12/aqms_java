@@ -1,6 +1,7 @@
 package aqms;
 
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.sql.ResultSet;
 import javax.swing.JButton;
@@ -274,6 +275,28 @@ public class Configuration {
 				Main.lblLocation.setText(Main.nama_stasiun);
 			}
 		});
+		txtDeviceId.setFont(new Font("Arial", Font.BOLD, 12));
+		txtStasiunId.setFont(new Font("Arial", Font.BOLD, 12));
+		txtNamaStasiun.setFont(new Font("Arial", Font.BOLD, 12));
+		txtAlamat.setFont(new Font("Arial", Font.BOLD, 12));
+		txtKota.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPropinsi.setFont(new Font("Arial", Font.BOLD, 12));
+		txtLatitude.setFont(new Font("Arial", Font.BOLD, 12));
+		txtLongitude.setFont(new Font("Arial", Font.BOLD, 12));
+		txtIntervalPompa.setFont(new Font("Arial", Font.BOLD, 12));
+		txtKontrolerPompa.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortPM10.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudPM10.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortPM25.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudPM25.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortPump.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudPump.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortHC.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudHC.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortPwm.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudPwm.setFont(new Font("Arial", Font.BOLD, 12));
+		txtPortWs.setFont(new Font("Arial", Font.BOLD, 12));
+		txtBaudWs.setFont(new Font("Arial", Font.BOLD, 12));
 		txtDeviceId.setBounds(205, 5, 200, 20);
 		txtStasiunId.setBounds(205, 30, 200, 20);
 		txtNamaStasiun.setBounds(205, 55, 200, 20);
