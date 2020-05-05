@@ -327,30 +327,33 @@ public class Main {
 		String id_end = "-1";
 		String id_start = "-1";
 		String lasttime;
-		
-		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");  
-		LocalDateTime now = LocalDateTime.now().minusMinutes(minutes);
-		lasttime = dtf.format(now);
-		
-		ResultSet rs = execQuery("SELECT id FROM data_log WHERE waktu LIKE '" + lasttime + ":%' AND is_avg='0' ORDER BY waktu LIMIT 1");
-		try {
-			if(rs.next()) id_start = rs.getString("id");
-			else id_start = "-1";
-		} catch (Exception e) { id_start = "-1";}
-		
-		rs = execQuery("SELECT id FROM data_log ORDER BY waktu DESC");
-		try {
-			if(rs.next()) id_end = rs.getString("id");
-			else id_end = "-1";
-		} catch (Exception e) { id_end = "-1";}
-		
-		if(id_start != "-1") {
-			rs = execQuery("SELECT * FROM data_log WHERE id between '" + id_start + "' AND '" + id_end + "'");
-			idEndDataLogRange = id_end;
-			idStartDataLogRange = id_start;
+		int mm = Integer.parseInt(DateTimeFormatter.ofPattern("mm").format(LocalDateTime.now()).toString());
+		if(mm%minutes == 0) {
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");  
+			LocalDateTime now = LocalDateTime.now().minusMinutes(minutes);
+			lasttime = dtf.format(now);
+			
+//			ResultSet rs = execQuery("SELECT id FROM data_log WHERE waktu LIKE '" + lasttime + ":%' AND is_avg='0' ORDER BY waktu LIMIT 1");
+			ResultSet rs = execQuery("SELECT id FROM data_log WHERE waktu >= '" + lasttime + ":00' AND is_avg='0' ORDER BY waktu LIMIT 1");
 			try {
-				return rs;
-			} catch (Exception e) { return null; }	
+				if(rs.next()) id_start = rs.getString("id");
+				else id_start = "-1";
+			} catch (Exception e) { id_start = "-1";}
+			
+			rs = execQuery("SELECT id FROM data_log ORDER BY waktu DESC");
+			try {
+				if(rs.next()) id_end = rs.getString("id");
+				else id_end = "-1";
+			} catch (Exception e) { id_end = "-1";}
+			
+			if(id_start != "-1") {
+				rs = execQuery("SELECT * FROM data_log WHERE id between '" + id_start + "' AND '" + id_end + "'");
+				idEndDataLogRange = id_end;
+				idStartDataLogRange = id_start;
+				try {
+					return rs;
+				} catch (Exception e) { return null; }	
+			}
 		}
 		return null;
 	}
