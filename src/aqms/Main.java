@@ -261,6 +261,7 @@ public class Main {
 	static String idStartDataLogRange = "-1";
 	static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	static String startAt = "";
+	static String lastPutData = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString();
 	
 	protected String readLabjack(String name) {
 		try {
@@ -328,7 +329,7 @@ public class Main {
 		String id_start = "-1";
 		String lasttime;
 		int mm = Integer.parseInt(DateTimeFormatter.ofPattern("mm").format(LocalDateTime.now()).toString());
-		if(mm%minutes == 0) {
+		if(mm%minutes == 0 && lastPutData != DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString()) {
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");  
 			LocalDateTime now = LocalDateTime.now().minusMinutes(minutes);
 			lasttime = dtf.format(now);
@@ -1053,6 +1054,7 @@ public class Main {
 						idStartDataLogRange = "-1";
 						idEndDataLogRange = "-1";
 						execQuery("INSERT INTO data (id_stasiun,waktu,pm10,pm25,pm10flow,pm25flow,so2,co,o3,no2,hc,is_sent,is_sent2) VALUES ('" + id_stasiun + "',NOW(),'" + Math.round(avgPM10) + "','" + Math.round(avgPM25) + "','" + Math.round(avgPM10flow) + "','" + Math.round(avgPM25flow) + "','" + Math.round(avgSO2) + "','" + Math.round(avgCO) + "','" + Math.round(avgO3) + "','" + Math.round(avgNO2) + "','" + Math.round(avgHC) + "','0','0')");
+						lastPutData = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(LocalDateTime.now()).toString();
 					}
 				} catch (Exception e) {}
 				
