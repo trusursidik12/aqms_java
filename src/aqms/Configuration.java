@@ -102,7 +102,7 @@ public class Configuration {
 	    } catch (Exception ex) {}
 		
 		try {
-			serialValve = Main.OpenSerial(Main.portPM10, Main.baudPM10);
+			serialValve = Main.OpenSerial(txtPortValve.getText(), Integer.parseInt(txtBaudValve.getText()));
 		} catch (Exception ex) { }
 	}
 
@@ -254,7 +254,7 @@ public class Configuration {
 				} catch (Exception ex) { }
 				
 				try {
-					serialValve = Main.OpenSerial(Main.portPM10, Main.baudPM10);
+					serialValve = Main.OpenSerial(txtPortValve.getText(), Integer.parseInt(txtBaudValve.getText()));
 				} catch (Exception ex) { }
 				
 				Main.lblLocation.setText(Main.nama_stasiun);
