@@ -17,6 +17,8 @@ import jssc.SerialPortException;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 
 public class Configuration {
@@ -248,10 +250,7 @@ public class Configuration {
 					Main.isHC = true;
 				} catch (Exception ex) { }
 				
-				try {
-					Main.serialPwm = Main.OpenSerial(Main.portPwm, Main.baudPwm);
-					Main.isPwm = true;
-				} catch (Exception ex) { }
+				Main.isPwm = false;
 				
 				try {
 					serialValve = Main.OpenSerial(txtPortValve.getText(), Integer.parseInt(txtBaudValve.getText()));
@@ -264,6 +263,9 @@ public class Configuration {
 		btnSampling = new JButton("Sampling");
 		btnSampling.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				btnSampling.setEnabled(false);
+				btnZero.setEnabled(true);
+				btnSpan.setEnabled(true);
 				try {
 					serialValve.writeBytes("i".getBytes());
 				} catch (SerialPortException e1) {}
@@ -273,6 +275,9 @@ public class Configuration {
 		btnZero = new JButton("Zero");
 		btnZero.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				btnSampling.setEnabled(true);
+				btnZero.setEnabled(false);
+				btnSpan.setEnabled(true);
 				try {
 					serialValve.writeBytes("j".getBytes());
 				} catch (SerialPortException e1) {}
@@ -282,6 +287,9 @@ public class Configuration {
 		btnSpan = new JButton("Span");
 		btnSpan.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				btnSampling.setEnabled(true);
+				btnZero.setEnabled(true);
+				btnSpan.setEnabled(false);
 				try {
 					serialValve.writeBytes("k".getBytes());
 				} catch (SerialPortException e1) {}
@@ -312,6 +320,13 @@ public class Configuration {
 		txtBaudWs.setFont(new Font("Arial", Font.BOLD, 14));
 		txtPortValve.setFont(new Font("Arial", Font.BOLD, 14));
 		txtBaudValve.setFont(new Font("Arial", Font.BOLD, 14));
+		btnSampling.setFont(new Font("Arial", Font.BOLD, 14));
+		btnZero.setFont(new Font("Arial", Font.BOLD, 14));
+		btnSpan.setFont(new Font("Arial", Font.BOLD, 14));
+		btnSimpan.setFont(new Font("Arial", Font.BOLD, 14));
+		btnSampling.setEnabled(false);
+		btnZero.setEnabled(true);
+		btnSpan.setEnabled(true);
 		txtDeviceId.setBounds(205, 5, 200, 20);
 		txtStasiunId.setBounds(205, 30, 200, 20);
 		txtNamaStasiun.setBounds(205, 55, 200, 20);
@@ -397,6 +412,12 @@ public class Configuration {
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		frame.setContentPane(contentPane);
+		frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+            	btnSampling.doClick();
+            }
+        });
 	}
 
 }
