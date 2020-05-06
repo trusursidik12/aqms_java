@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -254,7 +255,6 @@ public class Main {
 	static int zeroPM10 = 0;
 	static int zeroPM25 = 0;
 	static int countBtnVoltages = 0;
-	static int pwmtrynum = 0;
 	static String pumpSpeed = "0";
 	static String pumpSpeedCurr = "1";
 	static String idEndDataLogRange = "-1";
@@ -451,18 +451,17 @@ public class Main {
 			isHC = true;
 		} catch (Exception e) { }
 		
-		try {
-			serialPwm = OpenSerial(portPwm, baudPwm);
-			isPwm = true;
-		} catch (Exception e) { }
-
-//		try {
-//			serialPump = OpenSerial(portPump, baudPump);
-//			isPump = true;
-//			execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
-//			execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
-//		} catch (Exception e) { }
+		openPwm();
 		timerPump();
+	}
+	
+	private void openPwm() {
+		try {
+			try {serialPwm.closePort();} catch (Exception e) { }
+			serialPwm = OpenSerial(portPwm, baudPwm);
+			TimeUnit.SECONDS.sleep(3);
+			if(serialPwm.readString().toString().contains("Ready")) isPwm = true;
+		} catch (Exception e) { }
 	}
 	
 	static String initParam() {
@@ -839,8 +838,10 @@ public class Main {
 	private void timerPump() {
 		timerPump.schedule( new TimerTask() {
 			public void run() {
-				if(startingPwm > 3 && startingPwm < 6) btnPompa.doClick();
-				if(startingPwm <= 6) startingPwm++;
+				if(!isPwm) {
+					openPwm();
+					pumpSpeedCurr = "1";
+				}
 				if(pumpInterval > 0) {
 					ResultSet pump = execQuery("SELECT content FROM configurations WHERE data = 'pump_last'");
 					try {
@@ -856,13 +857,13 @@ public class Main {
 					rs.next();
 					pumpSpeed = rs.getString("content");
 				} catch (Exception e) { }
-				try {
-					if(!pumpSpeedCurr.contentEquals(pumpSpeed)) {
-						serialPwm.writeBytes(pumpSpeed.getBytes());
-						if(pwmtrynum > 3) pumpSpeedCurr = pumpSpeed;
-						if(pwmtrynum <= 3) pwmtrynum++;
-					}
-				} catch (SerialPortException e) { }
+				
+				if(!pumpSpeedCurr.contentEquals(pumpSpeed)) {
+					pumpSpeedCurr = pumpSpeed;
+					execQuery("UPDATE configurations SET content = 0 WHERE data = 'pump_state'");
+					execQuery("UPDATE configurations SET content = NOW() WHERE data = 'pump_last'");
+					try { serialPwm.writeBytes(pumpSpeed.getBytes()); } catch (Exception e) { }
+				}
 		    }
 		}, 0,1000);
 	}
