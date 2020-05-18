@@ -19,8 +19,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.BorderFactory;
+import javax.imageio.ImageIO;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.Font;
@@ -40,7 +41,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.chart.title.TextTitle;
 import org.jfree.data.time.*;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -60,6 +60,7 @@ import jssc.SerialPortList;
 import jssc.SerialPort; 
 import jssc.SerialPortException;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -1292,7 +1293,7 @@ public class Main {
 		lblPM10val.setText("0 ug/m3");
 		lblPM10val.setFont(new Font("Arial", Font.BOLD, 28));
 		lblPM10val.setForeground(lime);
-		lblPM10val.setBounds(58,52,150,35);
+		lblPM10val.setBounds(48,52,150,35);
 		lblPM10flow = new JLabel();
 		lblPM10flow.setText("0.0 l/mnt");
 		lblPM10flow.setFont(new Font("Arial", Font.BOLD, 14));
@@ -1324,7 +1325,7 @@ public class Main {
 		lblPM25val.setText("0 ug/m3");
 		lblPM25val.setFont(new Font("Arial", Font.BOLD, 28));
 		lblPM25val.setForeground(lime);
-		lblPM25val.setBounds(58,52,150,35);
+		lblPM25val.setBounds(48,52,150,35);
 		lblPM25flow = new JLabel();
 		lblPM25flow.setText("0.0 l/mnt");
 		lblPM25flow.setFont(new Font("Arial", Font.BOLD, 14));
@@ -1731,7 +1732,10 @@ public class Main {
 		/*END PANEL SOLARRAD ========================================================================================*/
 		
 		/*BUTTON VOLTAGES ========================================================================================*/
-		btnVoltages = new JButton("");
+		BufferedImage indonesiaIcon = null;
+		try { indonesiaIcon = ImageIO.read(getClass().getResourceAsStream("/images/indonesia.jpg")); } catch (Exception e) {}
+		btnVoltages = new JButton(new ImageIcon(indonesiaIcon));
+		
 		btnVoltages.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				countBtnVoltages++;
@@ -1741,9 +1745,6 @@ public class Main {
 				}
 			}
 		});
-		btnVoltages.setOpaque(false);
-		btnVoltages.setContentAreaFilled(false);
-		btnVoltages.setBorderPainted(false);
 		btnVoltages.setBounds(190,505,170,55);
 		contentPane.add(btnVoltages, BorderLayout.CENTER);
 		/*END BUTTON VOLTAGES ========================================================================================*/

@@ -88,15 +88,15 @@ public class Parameter {
 	private void initialize() {
 		frame = new JFrame("PARAMETER");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/images/logotrusur.png")));
-		frame.setBounds(50,50,380,500);
+		frame.setBounds(50,50,380,520);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		JPanel contentPane = new JPanel();
 		
-		JLabel lblSO2 = new JLabel("SO2");
+		JLabel lblSO2 = new JLabel("SO2 (0 - 1 ppm)");
 		lblSO2.setFont(new Font("Arial", Font.BOLD, 14));
-		lblSO2.setBounds(5, 5, 50, 30);		
+		lblSO2.setBounds(5, 5, 150, 30);		
 		JLabel lblSO2Molecular = new JLabel("Molecular :");
 		lblSO2Molecular.setBounds(20, 30, 70, 25);
 		txtMolecularSO2 = new JTextField(20);
@@ -114,9 +114,9 @@ public class Parameter {
 		txtFormulaSO2 = new JTextField(20);
 		txtFormulaSO2.setBounds(90, 65, 260, 25);
 
-		JLabel lblCO = new JLabel("CO");
+		JLabel lblCO = new JLabel("CO (0 - 1 ppm)");
 		lblCO.setFont(new Font("Arial", Font.BOLD, 14));
-		lblCO.setBounds(5, 100, 50, 30);		
+		lblCO.setBounds(5, 100, 150, 30);		
 		JLabel lblCOMolecular = new JLabel("Molecular :");
 		lblCOMolecular.setBounds(20, 125, 70, 25);
 		txtMolecularCO = new JTextField(20);
@@ -134,9 +134,9 @@ public class Parameter {
 		txtFormulaCO = new JTextField(20);
 		txtFormulaCO.setBounds(90, 160, 260, 25);
 
-		JLabel lblO3 = new JLabel("O3");
+		JLabel lblO3 = new JLabel("O3 (0 - 5 ppm)");
 		lblO3.setFont(new Font("Arial", Font.BOLD, 14));
-		lblO3.setBounds(5, 195, 50, 30);		
+		lblO3.setBounds(5, 195, 150, 30);		
 		JLabel lblO3Molecular = new JLabel("Molecular :");
 		lblO3Molecular.setBounds(20, 220, 70, 25);
 		txtMolecularO3 = new JTextField(20);
@@ -154,9 +154,9 @@ public class Parameter {
 		txtFormulaO3 = new JTextField(20);
 		txtFormulaO3.setBounds(90, 255, 260, 25);
 
-		JLabel lblNO2 = new JLabel("NO2");
+		JLabel lblNO2 = new JLabel("NO2 (0 - 1 ppm)");
 		lblNO2.setFont(new Font("Arial", Font.BOLD, 14));
-		lblNO2.setBounds(5, 290, 50, 30);		
+		lblNO2.setBounds(5, 290, 150, 30);		
 		JLabel lblNO2Molecular = new JLabel("Molecular :");
 		lblNO2Molecular.setBounds(20, 315, 70, 25);
 		txtMolecularNO2 = new JTextField(20);
@@ -173,6 +173,10 @@ public class Parameter {
 		lblNO2Formula.setBounds(20, 350, 70, 25);
 		txtFormulaNO2 = new JTextField(20);
 		txtFormulaNO2.setBounds(90, 350, 260, 25);
+		
+		JLabel lblHC = new JLabel("HC (0 - 50 ppm)");
+		lblHC.setFont(new Font("Arial", Font.BOLD, 14));
+		lblHC.setBounds(5, 385, 150, 30);		
 		
 		btnSimpan = new JButton("Simpan");
 		btnSimpan.addActionListener(new ActionListener() {
@@ -203,7 +207,7 @@ public class Parameter {
 		txtGainNO2.setFont(new Font("Arial", Font.BOLD, 14));
 		txtOffsetNO2.setFont(new Font("Arial", Font.BOLD, 14));
 		
-		btnSimpan.setBounds(100, 390, 170, 50);
+		btnSimpan.setBounds(100, 420, 170, 50);
 		
 		contentPane.add(lblSO2);
 		contentPane.add(lblSO2Molecular);
@@ -241,6 +245,7 @@ public class Parameter {
 		contentPane.add(txtOffsetNO2);
 		contentPane.add(lblNO2Formula);
 		contentPane.add(txtFormulaNO2);
+		contentPane.add(lblHC);
 		contentPane.add(btnSimpan);
 		
 		contentPane.setBorder(new EmptyBorder(0, 0, 0, 1));
